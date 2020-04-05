@@ -4,10 +4,10 @@ import re
 import argparse
 import sys
 import webbrowser
+import chatalyzer.analysis
 from datetime import datetime
 from tqdm import tqdm
 from jinja2 import Environment, FileSystemLoader
-import pdb
 
 
 # chat parsing functions taken from https://towardsdatascience.com/build-your-own-whatsapp-chat-analyzer-9590acca9014
