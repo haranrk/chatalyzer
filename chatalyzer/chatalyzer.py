@@ -6,9 +6,7 @@ import sys
 import webbrowser
 from datetime import datetime
 from tqdm import tqdm
-from jinja2 import Environment, FileSystemLoader
 from flask import Flask, render_template, request, redirect, url_for, flash
-from werkzeug.utils import secure_filename
 import uuid
 
 #Globals
@@ -20,10 +18,6 @@ ALLOWED_EXTENSIONS = {'txt'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-@app.route('/')
-def index():
-   return render_template("index.html")
 
 # chat parsing functions taken from https://towardsdatascience.com/build-your-own-whatsapp-chat-analyzer-9590acca9014
 def startsWithDateTime(s):
@@ -131,6 +125,10 @@ def upload_file():
             filename = analysis_id+'.txt'
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             return redirect(url_for('show_analysis',analysis_id=analysis_id))
+
+@app.route('/')
+def index():
+   return render_template("index.html")
 
 def main():
     app.run(debug=True)
