@@ -3,14 +3,14 @@ import os
 import re
 import argparse
 import sys
-import webbrowser
+import uuid
+from chatalyzer import analysis
 from datetime import datetime
 from tqdm import tqdm
 from flask import Flask, render_template, request, redirect, url_for, flash
 import uuid
 
-#Globals
-UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)),"uploads")
+UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), "uploads")
 if not os.path.isdir(UPLOAD_FOLDER):
     os.mkdir(UPLOAD_FOLDER)
 
@@ -20,7 +20,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # chat parsing functions taken from https://towardsdatascience.com/build-your-own-whatsapp-chat-analyzer-9590acca9014
-def startsWithDateTime(s):
+def starts_with_date_time(s):
     patterns = [
         '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) -',
         '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) am -',
@@ -36,14 +36,14 @@ def startsWithDateTime(s):
         return True
     return False
 
-def startsWithAuthor(s):
+def starts_with_author(s):
     patterns = [
-        '([\w]+):',                        # first Name
-        '([\w]+[\s]+[\w]+):',              # first Name + Last Name
-        '([\w]+[\s]+[\w]+[\s]+[\w]+):',    # first Name + Middle Name + Last Name
-        '([+]\d{2} \d{5} \d{5}):',         # mobile Number (India)
-        '([+]\d{2} \d{3} \d{3} \d{4}):',   # mobile Number (US)
-        '([+]\d{2} \d{4} \d{7})'           # mobile Number (Europe)
+        '([\w]+):',                       # First Name
+        '([\w]+[\s]+[\w]+):',             # First Name + Last Name
+        '([\w]+[\s]+[\w]+[\s]+[\w]+):',   # First Name + Middle Name + Last Name
+        '([+]\d{2} \d{5} \d{5}):',        # Mobile Number (India)
+        '([+]\d{2} \d{3} \d{3} \d{4}):',  # Mobile Number (US)
+        '([+]\d{2} \d{4} \d{7})'          # Mobile Number (Europe)
     ]
     pattern = '^' + '|'.join(patterns)
     result = re.match(pattern, s)
@@ -52,57 +52,62 @@ def startsWithAuthor(s):
         return True
     return False
 
-def getDataPoint(line):
-    # line = 18/06/17, 22:47 - Loki: Why do you have 2 numbers, Banner?
-    splitLine = line.split(' - ') # splitLine = ['18/06/17, 22:47', 'Loki: Why do you have 2 numbers, Banner?']
-    dateTime = splitLine[0] # dateTime = '18/06/17, 22:47'
-    date, time = dateTime.split(', ') # date = '18/06/17'; time = '22:47'
-    message = ' '.join(splitLine[1:]) # message = 'Loki: Why do you have 2 numbers, Banner?'
 
-    if startsWithAuthor(message): # True
-        splitMessage = message.split(': ') # splitMessage = ['Loki', 'Why do you have 2 numbers, Banner?']
-        author = splitMessage[0] # author = 'Loki'
-        message = ' '.join(splitMessage[1:]) # message = 'Why do you have 2 numbers, Banner?'
+def get_data_point(line):
+    # line = 18/06/17, 22:47 - Loki: Why do you have 2 numbers, Banner?
+    split_line = line.split(' - ')      # split_line = ['18/06/17, 22:47', 'Loki: Why do you have 2 numbers, Banner?']
+    date_time = split_line[0]           # date_time = '18/06/17, 22:47'
+    date, time = date_time.split(', ')  # date = '18/06/17'; time = '22:47'
+    message = ' '.join(split_line[1:])  # message = 'Loki: Why do you have 2 numbers, Banner?'
+
+    if starts_with_author(message):  # True
+        split_message = message.split(': ')    # split_message = ['Loki', 'Why do you have 2 numbers, Banner?']
+        author = split_message[0]              # author = 'Loki'
+        message = ' '.join(split_message[1:])  # message = 'Why do you have 2 numbers, Banner?'
     else:
         author = None
 
     return date, time, author, message
 
-def getChats(chatfile):
-    with open(chatfile, "r", encoding = "utf-8") as in_file: # storing the chat data in the variable lines
+
+def get_chats(chatfile):
+    with open(chatfile, "r", encoding="utf-8") as in_file:  # storing the chat data in the variable lines
         lines = in_file.readlines()
 
-    parsedData = [] # list to keep track of data so it can be used by a Pandas dataframe
-    pbar = tqdm(lines, desc = "Reading chats") # displaying a progress bar to show the amount of the chat data loaded
-    messageBuffer = [] # buffer to capture intermediate output for multi-line messages
-    date, time, author = None, None, None # intermediate variables to keep track of the current message being processed
+    parsed_data = []  # list to keep track of data so it can be used by a Pandas dataframe
+    pbar = tqdm(lines, desc="Reading chats")  # displaying a progress bar to show the amount of the chat data loaded
+    message_buffer = []  # buffer to capture intermediate output for multi-line messages
+    date, time, author = None, None, None  # intermediate variables to keep track of the current message being processed
 
-    for i,line in enumerate(pbar):
-        line = line.strip() # guarding against erroneous leading and trailing whitespaces
-        if startsWithDateTime(line): # if a line starts with a Date Time pattern, then this indicates the beginning of a new message
-            if len(messageBuffer) > 0: # check if the message buffer contains characters from previous iterations
-                parsedData.append([date, time, author, ' '.join(messageBuffer)]) # save the tokens from the previous message in parsedData
-            messageBuffer.clear() # clear the message buffer so that it can be used for the next message
-            date, time, author, message = getDataPoint(line) # identify and extract tokens from the line
-            messageBuffer.append(message)
+    for i, line in enumerate(pbar):
+        line = line.strip()  # guarding against erroneous leading and trailing whitespaces
+        if starts_with_date_time(line):  # if a line starts with a Date Time pattern, then this indicates the beginning of a new message
+            if len(message_buffer) > 0:  # check if the message buffer contains characters from previous iterations
+                parsed_data.append([date, time, author, ' '.join(message_buffer)])  # save the tokens from the previous message in parsed_data
+            message_buffer.clear()  # clear the message buffer so that it can be used for the next message
+            date, time, author, message = get_data_point(line)  # identify and extract tokens from the line
+            message_buffer.append(message)
         else:
-            messageBuffer.append(line) # if a line doesn't start with a Date Time pattern, then it is part of a multi-line message. So, just append to buffer"""
+            message_buffer.append(line)  # if a line doesn't start with a Date Time pattern, then it is part of a multi-line message. So, just append to buffer"""
 
-    df = pd.DataFrame(parsedData, columns=['Date', 'Time', 'Author', 'Message'])
+    df = pd.DataFrame(parsed_data, columns=['Date', 'Time', 'Author', 'Message'])
 
     return df
+
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 @app.route('/analysis/<analysis_id>')
 def show_analysis(analysis_id):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], analysis_id) + '.txt'
-    df = getChats(file_path)
+    df = get_chats(file_path)
     print(df.head())
     # import ipdb; ipdb.set_trace()
     return render_template('chat_analysis.html', num_msgs=df.shape[0])
+
 
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload_file():
@@ -122,9 +127,10 @@ def upload_file():
         if file and allowed_file(file.filename):
             # filename = secure_filename(file.filename)
             analysis_id = uuid.uuid4().hex
-            filename = analysis_id+'.txt'
+            filename = analysis_id + '.txt'
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('show_analysis',analysis_id=analysis_id))
+            return redirect(url_for('show_analysis', analysis_id=analysis_id))
+
 
 @app.route('/')
 def index():
@@ -133,5 +139,6 @@ def index():
 def main():
     app.run(debug=True)
 
-if __name__ == "__main__": # to start the analysis of the chat data
+
+if __name__ == "__main__":  # to start the analysis of the chat data
     main()
