@@ -27,7 +27,15 @@ def index():
 
 # chat parsing functions taken from https://towardsdatascience.com/build-your-own-whatsapp-chat-analyzer-9590acca9014
 def startsWithDateTime(s):
-    pattern = '^([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) -'
+    patterns = [
+        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) -',
+        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) am -',
+        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9]):([0-9][0-9]) am -',
+        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) pm -',
+        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9]):([0-9][0-9]) pm -'
+    ]
+
+    pattern = '^' + '|'.join(patterns)
     result = re.match(pattern, s)
 
     if result:
@@ -89,25 +97,6 @@ def getChats(chatfile):
     df = pd.DataFrame(parsedData, columns=['Date', 'Time', 'Author', 'Message'])
 
     return df
-
-# def run_analysis():
-    # parser = argparse.ArgumentParser() # parsing the arguments given to get the chat data
-    # parser.add_argument("chatfile", help = "Path to the chat file obtained by exporting from Whatsapp")
-    # parser.add_argument("--output", "-o", help = "Path of output html file containing the analysis", default="analysis.html")
-    # args = parser.parse_args()
-
-    # df = getChats(args.chatfile) # parse the chat data
-    # print(df.head())
-
-    # pkg_dir = os.path.dirname(__file__)
-    # file_loader = FileSystemLoader(os.path.join(pkg_dir, "templates"))
-    # env = Environment(loader = file_loader)
-    # template = env.get_template("chat_analysis.html")
-    # output = template.render(name = "H")
-    # with open(args.output, 'w') as f:
-        # f.write(output)
-
-    # webbrowser.open("file://" + os.path.abspath(args.output)) # display the results of the analysis on a web-page
 
 def allowed_file(filename):
     return '.' in filename and \
