@@ -1,4 +1,6 @@
 sample-texts/*
+chatalyzer/uploads
+experiments
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
