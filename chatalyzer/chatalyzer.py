@@ -105,6 +105,7 @@ def show_analysis(analysis_id):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], analysis_id) + '.txt'
     df = get_chats(file_path)
     print(df.head())
+    # analysis.debug_df(df)
     # import ipdb; ipdb.set_trace()
     return render_template('chat_analysis.html', num_msgs=df.shape[0])
 
