@@ -5,15 +5,17 @@ KEY_DATE = 'Date'
 KEY_TIME = 'Time'
 KEY_AUTHOR = 'Author'
 KEY_MESSAGE = 'Message'
-KEY_MESSAGE_COUNT = 'Message Count'
 KEY_DATE_TIME = 'Date Time'
-KEY_BUSY_X = 'Busy X'
 KEY_YEAR = 'Year'
 KEY_MONTH = 'Month'
 KEY_DAY = 'Day'
 KEY_HOUR = 'Hour'
 KEY_MINUTE = 'Minute'
 KEY_SECOND = 'Second'
+KEY_LETTER_COUNT = 'Letter Count'
+KEY_WORD_COUNT = 'Word Count'
+KEY_MESSAGE_COUNT = 'Message Count'
+KEY_BUSY_X = 'Busy X'
 
 TAG_MEDIA_OMITTED = '<Media omitted>'
 
@@ -103,12 +105,16 @@ def add_date_time(df):
     return df2
 
 
-def add_word_count(df):
-    pass
-
-
 def add_letter_count(df):
-    pass
+    df2 = df.copy()
+    df2[KEY_LETTER_COUNT] = df2[KEY_MESSAGE].apply(len)
+    return df2
+
+
+def add_word_count(df):
+    df2 = df.copy()
+    df2[KEY_WORD_COUNT] = df2[KEY_MESSAGE].apply(lambda x: len(x.split()))
+    return df2
 
 
 def debug_df(df):
