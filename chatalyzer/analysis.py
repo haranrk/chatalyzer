@@ -1,13 +1,19 @@
 import pandas as pd
 import ipdb
 
-
 KEY_DATE = 'Date'
 KEY_TIME = 'Time'
 KEY_AUTHOR = 'Author'
 KEY_MESSAGE = 'Message'
 KEY_MESSAGE_COUNT = 'Message Count'
 KEY_DATE_TIME = 'Date Time'
+KEY_BUSY_X = 'Busy X'
+KEY_YEAR = 'Year'
+KEY_MONTH = 'Month'
+KEY_DAY = 'Day'
+KEY_HOUR = 'Hour'
+KEY_MINUTE = 'Minute'
+KEY_SECOND = 'Second'
 
 TAG_MEDIA_OMITTED = '<Media omitted>'
 
@@ -41,8 +47,8 @@ def get_media_messages(df):
 
 def get_date_time(df):
     df2 = am_pm_to_24hr(df)
-    date_time_df = pd.to_datetime(df2[KEY_DATE]+':'+df2[KEY_TIME], format='%d/%m/%y:%H:%M:%S')
-    return date_time_df
+    date_time = pd.to_datetime(df2[KEY_DATE]+':'+df2[KEY_TIME], format='%d/%m/%y:%H:%M:%S')
+    return date_time
 
 
 def get_top_message_senders(df, n_authors=10):
@@ -66,12 +72,35 @@ def get_top_media_senders(df, n_authors=10):
     return top_media_df.head(n_authors)
 
 
-def get_busy_dates(df, n_dates=10):
-    pass
+def get_busy_x(df, x, n_x=10):
+    date_time = df[KEY_DATE_TIME].dt
+    x_data_dict = {
+        KEY_DATE: date_time.date,
+        KEY_TIME: date_time.time,
+        KEY_YEAR: date_time.year,
+        KEY_MONTH: date_time.month,
+        KEY_DAY: date_time.day,
+        KEY_HOUR: date_time.hour,
+        KEY_MINUTE: date_time.minute,
+        KEY_SECOND: date_time.second
+    }
+
+    df2 = df.copy()
+    df2[KEY_BUSY_X] = x_data_dict[x]
+    df3 = df2.groupby(KEY_BUSY_X, as_index=False).count() \
+        .sort_values(by=[KEY_MESSAGE], ascending=False) \
+        .reset_index(drop=True)\
+        .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
+
+    busy_x_df = df3[[KEY_BUSY_X, KEY_MESSAGE_COUNT]]
+    return busy_x_df.head(n_x)
 
 
-def get_busy_hours(df, n_hours=10):
-    pass
+def add_date_time(df):
+    df2 = df.copy()
+    date_time = get_date_time(df)
+    df2[KEY_DATE_TIME] = date_time
+    return df2
 
 
 def add_word_count(df):
@@ -80,13 +109,6 @@ def add_word_count(df):
 
 def add_letter_count(df):
     pass
-
-
-def add_date_time(df):
-    df2 = df.copy()
-    date_time_df = get_date_time(df)
-    df2[KEY_DATE_TIME] = date_time_df
-    return df2
 
 
 def debug_df(df):
