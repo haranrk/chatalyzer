@@ -3,11 +3,18 @@
     <head>
         <meta charset="utf-8">
         <title>Chatalyzer Analysis</title>
+        <link rel="stylesheet" href={{ url_for('static', filename='css/bootstrap.min.css') }} >
+        <link rel="stylesheet" href={{ url_for('static', filename='css/main.css') }} >
     </head>
     <body>
-        <h1>Analysis of your chat</h1>
-        <p>{{ num_msgs }}</p>
+        {% include 'navbar.html' %}
+        <div class="container">
+            <h1>Analysis of your chat</h1>
+            <p>{{ num_msgs }}</p>
+        </div>
     </body>
+    <script src={{ url_for('static', filename='js/jquery-3.4.1.min.js') }} ></script>
+    <script src={{ url_for('static', filename='js/bootstrap.bundle.min.js') }} ></script>
 </html>
 
 

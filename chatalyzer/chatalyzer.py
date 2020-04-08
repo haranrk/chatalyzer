@@ -132,12 +132,17 @@ def upload_file():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             return redirect(url_for('show_analysis', analysis_id=analysis_id))
 
-
 @app.route('/')
 def index():
    return render_template("index.html")
 
 def main():
+    app.config.update(
+        TESTING=True,
+        # SECRET_KEY=b'_5#y2L"F4Q8z\n\xec]/'
+    )
+
+
     app.run(debug=True)
 
 
