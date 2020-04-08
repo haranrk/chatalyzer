@@ -1,5 +1,4 @@
 import pandas as pd
-import ipdb
 
 KEY_DATE = 'Date'
 KEY_TIME = 'Time'
@@ -117,5 +116,3 @@ def add_word_count(df):
     return df2
 
 
-def debug_df(df):
-    ipdb.set_trace()
