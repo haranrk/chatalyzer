@@ -59,7 +59,10 @@ def get_top_message_senders(df, n_authors=10):
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
     top_message_df = df2[[KEY_AUTHOR, KEY_MESSAGE_COUNT]]
-    return top_message_df.head(n_authors)
+    if n_authors == -1:
+        return top_message_df
+    else:
+        return top_message_df.head(n_authors)
 
 
 def get_top_media_senders(df, n_authors=10):
@@ -70,7 +73,10 @@ def get_top_media_senders(df, n_authors=10):
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
     top_media_df = df2[[KEY_AUTHOR, KEY_MESSAGE_COUNT]]
-    return top_media_df.head(n_authors)
+    if n_authors == -1:
+        return top_media_df
+    else:
+        return top_media_df.head(n_authors)
 
 
 def get_busy_x(df, x, n_x=10):
@@ -94,7 +100,10 @@ def get_busy_x(df, x, n_x=10):
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
     busy_x_df = df3[[KEY_BUSY_X, KEY_MESSAGE_COUNT]]
-    return busy_x_df.head(n_x)
+    if n_x == -1:
+        return busy_x_df
+    else:
+        return busy_x_df.head(n_x)
 
 
 def add_date_time(df):
@@ -128,8 +137,19 @@ def list_participants(df):
     return participant_list
 
 
+def group_timeline(df):
+    '''
+    Returns data containing when particpants joind and left the group
+    '''
+    pass
 
-     
+
+def messages_per_day(df):
+    df1 = drop_none_author(df)
+
+
+
+
 
 
 
