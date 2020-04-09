@@ -11,10 +11,78 @@
         <div class="container">
             <h1>Analysis of your chat</h1>
             <p>{{ num_msgs }}</p>
+            <div class="row">
+                <h2> Top message senders </h2>
+                <div id="top_message_senders">
+            </div>
+            </div>
         </div>
     </body>
-    <script src={{ url_for('static', filename='js/jquery-3.4.1.min.js') }} ></script>
-    <script src={{ url_for('static', filename='js/bootstrap.bundle.min.js') }} ></script>
+<script src={{ url_for('static', filename='js/jquery-3.4.1.min.js') }} ></script>
+<script src={{ url_for('static', filename='js/bootstrap.bundle.min.js') }} ></script>
+<script src={{ url_for('static', filename='js/d3.min.js') }} ></script>
+<!--<script src={{ url_for('static', filename='js/analysis.js') }} ></script>-->
+<script>
+var margin = {"left": 150, "right": 70, "top":30, "bottom":20};
+var graphHeight = 300;
+var graphWidth = 700
+var paddingGraphButtons = 20;
+var buttonsHeight = 35;
+var h = margin.top+graphHeight+paddingGraphButtons+buttonsHeight+margin.bottom;
+var w = margin.left + graphWidth+ margin.right;
+var buttonsPaddingRight = 350;
+var buttonsPaddingInner = 0.1;
+
+var svg = d3.select("#top_message_senders")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h);
+
+var top_message_senders = {{ top_message_senders|safe }};
+
+var yScale = d3.scaleBand()
+                .domain(top_message_senders.map(x => x[0]))
+                .range([margin.top, margin.top+graphHeight]);
+
+var xScale = d3.scaleLinear()
+                    .domain([0, d3.max(top_message_senders, function(d) { return d[1] })])
+                    .range([0, graphWidth]);
+
+var colorScale = d3.scaleLinear()
+                    .domain([0, d3.max(top_message_senders, function(d) { return d[1] })])
+                    .range([0, 1]);
+
+var graph = svg.append("g").attr("class","top_message_senders")
+
+graph.selectAll("rect")
+        .data(top_message_senders)
+        .enter()
+        .append("rect")
+        .attr("width", function(d) { return xScale(d[1]) })
+        .attr("height", function(d) { return yScale.bandwidth() })
+        .attr("x", function(d) { return margin.left+xScale(0) })
+        .attr("y", function(d) { return yScale(d[0])})
+        .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))})
+
+var xAxis = d3.axisTop()
+                .scale(xScale);
+var yAxis = d3.axisLeft()
+                .scale(yScale);
+
+svg.append("g")
+    .attr("id", "x-axis")
+    .classed("axis", true)
+    .attr("transform", "translate("+margin.left+","+margin.top+")")
+    .call(xAxis);
+
+svg.append("g")
+    .attr("id", "y-axis")
+    .classed("axis", true)
+    .attr("transform", "translate("+margin.left+","+0+")")
+    .call(yAxis);
+                    
+
+</script>
 </html>
 
 

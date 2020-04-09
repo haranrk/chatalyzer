@@ -115,4 +115,21 @@ def add_word_count(df):
     df2[KEY_WORD_COUNT] = df2[KEY_MESSAGE].apply(lambda x: len(x.split()))
     return df2
 
+def list_participants(df):
+    '''
+    Returns a list of the group participants
+    Arguments:
+        df (pandas.DataFrame) - Dataframe of the chat having at least the "Author" column
+    
+    Returns:
+        list - List containing the participants
+    '''
+    participant_list = list(drop_none_author(df)["Author"].unique())
+    return participant_list
+
+
+
+     
+
+
 

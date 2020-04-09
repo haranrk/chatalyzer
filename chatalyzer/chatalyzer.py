@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import json
 import re
 import argparse
 import sys
@@ -104,11 +105,9 @@ def allowed_file(filename):
 def show_analysis(analysis_id):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], analysis_id) + '.txt'
     df = get_chats(file_path)
-    print(df.head())
-    # analysis.debug_df(df)
+    top_message_senders = json.dumps(analysis.get_top_message_senders(df,100).values.tolist())
     # import ipdb; ipdb.set_trace()
-    return render_template('chat_analysis.html', num_msgs=df.shape[0])
-
+    return render_template('chat_analysis.html', num_msgs=df.shape[0], top_message_senders=top_message_senders)
 
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload_file():
