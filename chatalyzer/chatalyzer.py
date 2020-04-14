@@ -91,6 +91,7 @@ def get_chats(chatfile):
         else:
             message_buffer.append(line)  # if a line doesn't start with a Date Time pattern, then it is part of a multi-line message. So, just append to buffer"""
 
+    parsed_data.append([date, time, author, ' '.join(message_buffer)])  # save the tokens from the previous message in parsed_data
     df = pd.DataFrame(parsed_data, columns=['Date', 'Time', 'Author', 'Message'])
 
     return df
@@ -104,6 +105,7 @@ def allowed_file(filename):
 @app.route('/analysis/<analysis_id>')
 def show_analysis(analysis_id):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], analysis_id) + '.txt'
+    # import ipdb; ipdb.set_trace()
     df = get_chats(file_path)
     df = analysis.add_date_time(df)
     df = analysis.add_letter_count(df)
@@ -111,7 +113,8 @@ def show_analysis(analysis_id):
 
 
     top_message_senders = json.dumps(analysis.get_top_message_senders(df,-1).values.tolist())
-    import ipdb; ipdb.set_trace()
+    word_count = json.dumps(analysis.get_top_x_count(df,analysis.KEY_WORD_COUNT,-1).values.tolist())
+    letter_count = json.dumps(analysis.get_top_x_count(df,analysis.KEY_LETTER_COUNT,-1).values.tolist())
     busiest_days = analysis.get_busy_x(df, "Date", -1)
     daywise_message_count = busiest_days.sort_values("Busy X")
     daywise_message_count = json.dumps(daywise_message_count.values.tolist(),cls=analysis.DateTimeEncoder)
@@ -119,6 +122,8 @@ def show_analysis(analysis_id):
     return render_template('chat_analysis.html', 
             num_msgs=df.shape[0], 
             daywise_message_count=daywise_message_count,
+            letter_count=letter_count,
+            word_count=word_count,
             top_message_senders=top_message_senders)
 
 @app.route('/uploader', methods=['GET', 'POST'])

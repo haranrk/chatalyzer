@@ -16,6 +16,14 @@
                 <div id="top_message_senders"></div>
             </div>
             <div class="row">
+                <h2> Word Count </h2>
+                <div id="word_count"></div>
+            </div>
+            <div class="row">
+                <h2> Letter Count </h2>
+                <div id="letter_count"></div>
+            </div>
+            <div class="row">
                 <h2> Daywise messages </h2>
                 <div id="daywise_messages"></div>
             </div>
@@ -27,65 +35,67 @@
 <script src={{ url_for('static', filename='js/d3.min.js') }} ></script>
 <!--<script src={{ url_for('static', filename='js/analysis.js') }} ></script>-->
 <script>
-// Top messsage sensers graph
-var margin = {"left": 150, "right": 70, "top":30, "bottom":20};
-var graphHeight = 300;
-var graphWidth = 700
-var paddingGraphButtons = 20;
-var buttonsHeight = 35;
-var h = margin.top+graphHeight+paddingGraphButtons+buttonsHeight+margin.bottom;
-var w = margin.left + graphWidth+ margin.right;
-var buttonsPaddingRight = 350;
-var buttonsPaddingInner = 0.1;
+function barGraph(svgId, data){
+    var margin = {"left": 150, "right": 70, "top":30, "bottom":20};
+    var graphHeight = data.length*10;
+    var graphWidth = 700;
+    var h = margin.top+graphHeight+margin.bottom;
+    var w = margin.left + graphWidth+ margin.right;
 
-var svg = d3.select("#top_message_senders")
-            .append("svg")
-            .attr("width", w)
-            .attr("height", h);
+    var svg = d3.select(svgId)
+                .append("svg")
+                .attr("width", w)
+                .attr("height", h);
 
+    var yScale = d3.scaleBand()
+                    .domain(data.map(x => x[0]))
+                    .range([margin.top, margin.top+graphHeight]);
+
+    var xScale = d3.scaleLinear()
+                        .domain([0, d3.max(data, function(d) { return d[1] })]).nice()
+                        .range([0, graphWidth]);
+
+    var colorScale = d3.scaleLinear()
+                        .domain([0, d3.max(data, function(d) { return d[1] })])
+                        .range([0, 1]);
+
+    var graph = svg.append("g").attr("class","bar-graph")
+
+    graph.selectAll("rect")
+            .data(data)
+            .enter()
+            .append("rect")
+            .attr("width", function(d) { return xScale(d[1]) })
+            .attr("height", function(d) { return yScale.bandwidth() })
+            .attr("x", function(d) { return margin.left+xScale(0) })
+            .attr("y", function(d) { return yScale(d[0])})
+            .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))})
+
+    var xAxis = d3.axisTop()
+                    .scale(xScale);
+    var yAxis = d3.axisLeft()
+                    .scale(yScale);
+
+    svg.append("g")
+        .attr("id", "x-axis")
+        .classed("axis", true)
+        .attr("transform", "translate("+margin.left+","+margin.top+")")
+        .call(xAxis);
+
+    svg.append("g")
+        .attr("id", "y-axis")
+        .classed("axis", true)
+        .attr("transform", "translate("+margin.left+","+0+")")
+        .call(yAxis);
+}
 var top_message_senders = {{ top_message_senders|safe }};
+barGraph("#top_message_senders", top_message_senders);
 
-var yScale = d3.scaleBand()
-                .domain(top_message_senders.map(x => x[0]))
-                .range([margin.top, margin.top+graphHeight]);
+var word_count = {{ word_count|safe }};
+barGraph("#word_count", word_count);
 
-var xScale = d3.scaleLinear()
-                    .domain([0, d3.max(top_message_senders, function(d) { return d[1] })]).nice()
-                    .range([0, graphWidth]);
-
-var colorScale = d3.scaleLinear()
-                    .domain([0, d3.max(top_message_senders, function(d) { return d[1] })])
-                    .range([0, 1]);
-
-var graph = svg.append("g").attr("class","top_message_senders")
-
-graph.selectAll("rect")
-        .data(top_message_senders)
-        .enter()
-        .append("rect")
-        .attr("width", function(d) { return xScale(d[1]) })
-        .attr("height", function(d) { return yScale.bandwidth() })
-        .attr("x", function(d) { return margin.left+xScale(0) })
-        .attr("y", function(d) { return yScale(d[0])})
-        .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))})
-
-var xAxis = d3.axisTop()
-                .scale(xScale);
-var yAxis = d3.axisLeft()
-                .scale(yScale);
-
-svg.append("g")
-    .attr("id", "x-axis")
-    .classed("axis", true)
-    .attr("transform", "translate("+margin.left+","+margin.top+")")
-    .call(xAxis);
-
-svg.append("g")
-    .attr("id", "y-axis")
-    .classed("axis", true)
-    .attr("transform", "translate("+margin.left+","+0+")")
-    .call(yAxis);
-                    
+var letter_count = {{ letter_count|safe }};
+barGraph("#letter_count", letter_count);
 </script>
 <script>
 // Daywise messages graph
@@ -173,7 +183,7 @@ svg.append("g")
     .attr("transform", "translate("+margin.left+","+0+")")
     .call(yAxis);
 
-d3.selectAll("#x-axis .tick")
+d3.selectAll("#daywise_messages #x-axis .tick")
     .attr("opacity", function(d,i){
         everyX = parseInt(20*graphWidth/(xScale.range()[1]-xScale.range()[0]));
         if (i%everyX)
