@@ -109,8 +109,9 @@ def show_analysis(analysis_id):
     df = analysis.add_letter_count(df)
     df = analysis.add_word_count(df)
 
+
     top_message_senders = json.dumps(analysis.get_top_message_senders(df,-1).values.tolist())
-    # import ipdb; ipdb.set_trace()
+    import ipdb; ipdb.set_trace()
     busiest_days = analysis.get_busy_x(df, "Date", -1)
     daywise_message_count = busiest_days.sort_values("Busy X")
     daywise_message_count = json.dumps(daywise_message_count.values.tolist(),cls=analysis.DateTimeEncoder)
