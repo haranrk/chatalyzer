@@ -112,6 +112,30 @@ def get_date_time(df):
     return date_time
 
 
+def get_top_x_count(df, x, n_authors=10):
+    """
+    Returns a Pandas DataFrame containing the names and word/letter count of top senders
+    sorted in descending order of the word/letter count
+
+        Arguments:
+            df (Pandas.DataFrame) - DataFrame of chats
+            x (str) - KEY_LETTER_COUNT, KEY_WORD_COUNT
+            n_authors (int, default 10) - Number of top authors required
+
+        Returns:
+            Pandas.DataFrame ('Author', x)
+    """
+    df2 = df.groupby(KEY_AUTHOR, as_index=False).sum()\
+        .sort_values(by=[x], ascending=False)\
+        .reset_index(drop=True)
+
+    top_x_df = df2[[KEY_AUTHOR, x]]
+    if n_authors == -1:
+        return top_x_df
+    else:
+        return top_x_df.head(n_authors)
+
+
 def get_top_message_senders(df, n_authors=10):
     """
     Returns a Pandas DataFrame containing the names and message count of top message senders
