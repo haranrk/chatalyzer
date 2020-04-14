@@ -8,27 +8,82 @@
     </head>
     <body>
         {% include 'navbar.html' %}
-        <div class="container">
-            <h1>Analysis of your chat</h1>
-            <p>{{ num_msgs }}</p>
-            <div class="row">
-                <h2> Top message senders </h2>
-                <div id="top_message_senders"></div>
-            </div>
-            <div class="row">
-                <h2> Word Count </h2>
-                <div id="word_count"></div>
-            </div>
-            <div class="row">
-                <h2> Letter Count </h2>
-                <div id="letter_count"></div>
-            </div>
-            <div class="row">
-                <h2> Daywise messages </h2>
-                <div id="daywise_messages"></div>
-            </div>
-            </div>
+        <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
+          <div class="col-md-5 p-lg-5 mx-auto my-5">
+            <h1 class="display-4 font-weight-normal">The Analysis</h1>
+            <p class="lead font-weight-normal"> Total number of messages sent {{ num_msgs }} </p>
+            <!--<a class="btn btn-outline-secondary" href="#">Coming soon</a>-->
+          </div>
         </div>
+
+<div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
+  <div class="bg-dark mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
+    <div class="my-3 py-3">
+      <h2 class="display-5">Total Message Count</h2>
+      <!--<p class="lead">And an even wittier subheading.</p>-->
+    </div>
+    <div id="top_message_senders" class="bg-dark " style="width: 80%; height: 300px;"></div>
+
+  </div>
+  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+    <div class="my-3 p-3">
+      <h2 class="display-5">Total Word Count</h2>
+      <p class="lead">And an even wittier subheading.</p>
+    </div>
+    <div id="word_count" class="bg-light " style="width: 80%; height: 300px;"></div>
+  </div>
+</div>
+
+<div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
+  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+    <div class="my-3 p-3">
+      <h2 class="display-5">Letter Count</h2>
+      <!--<p class="lead">And an even wittier subheading.</p>-->
+    </div>
+    <div id="letter_count" class="bg-light " style="width: 80%; height: 300px;"></div>
+  </div>
+  <div class="bg-dark mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
+    <div class="my-3 py-3">
+      <h2 class="display-5">Daywise Messages</h2>
+      <!--<p class="lead">And an even wittier subheading.</p>-->
+    </div>
+    <div id="daywise_messages" class="bg-dark " style="width: 80%; height: 300px;"></div>
+  </div>
+</div>
+
+<div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
+  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+    <div class="my-3 p-3">
+      <h2 class="display-5">Another headline</h2>
+      <p class="lead">And an even wittier subheading.</p>
+    </div>
+    <div class="bg-white shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
+  </div>
+  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+    <div class="my-3 py-3">
+      <h2 class="display-5">Another headline</h2>
+      <p class="lead">And an even wittier subheading.</p>
+    </div>
+    <div class="bg-white shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
+  </div>
+</div>
+
+<div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
+  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+    <div class="my-3 p-3">
+      <h2 class="display-5">Another headline</h2>
+      <p class="lead">And an even wittier subheading.</p>
+    </div>
+    <div class="bg-white shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
+  </div>
+  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+    <div class="my-3 py-3">
+      <h2 class="display-5">Another headline</h2>
+      <p class="lead">And an even wittier subheading.</p>
+    </div>
+    <div class="bg-white shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
+  </div>
+</div>
     </body>
 <script src={{ url_for('static', filename='js/jquery-3.4.1.min.js') }} ></script>
 <script src={{ url_for('static', filename='js/bootstrap.bundle.min.js') }} ></script>
@@ -36,9 +91,9 @@
 <!--<script src={{ url_for('static', filename='js/analysis.js') }} ></script>-->
 <script>
 function barGraph(svgId, data){
-    var margin = {"left": 150, "right": 70, "top":30, "bottom":20};
-    var graphHeight = data.length*10;
-    var graphWidth = 700;
+    var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
+    var graphHeight = data.length*15;
+    var graphWidth = 600;
     var h = margin.top+graphHeight+margin.bottom;
     var w = margin.left + graphWidth+ margin.right;
 
@@ -99,9 +154,9 @@ barGraph("#letter_count", letter_count);
 </script>
 <script>
 // Daywise messages graph
-var margin = {"left": 150, "right": 70, "top": 10, "bottom":50};
-var graphHeight = 300;
-var graphWidth = 700;
+var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
+var graphWidth = 600;
+var graphHeight = 220;
 var h = margin.top + graphHeight + margin.bottom;
 var w = margin.left + graphWidth+ margin.right;
 var buttonsPaddingRight = 350;
@@ -206,7 +261,7 @@ function zoomed() {
 
     d3.select("#daywise_messages #x-axis").call(xAxis);
 
-    d3.selectAll("#x-axis .tick")
+    d3.selectAll("#daywise_messages #x-axis .tick")
         .attr("opacity", function(d,i){
             everyX = parseInt(20*graphWidth/(oldRange[1]-oldRange[0]));
             if (i%everyX)
