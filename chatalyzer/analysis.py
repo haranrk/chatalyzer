@@ -1,4 +1,7 @@
 import pandas as pd
+import datetime
+import json
+
 
 KEY_DATE = 'Date'
 KEY_TIME = 'Time'
@@ -17,6 +20,15 @@ KEY_MESSAGE_COUNT = 'Message Count'
 KEY_BUSY_X = 'Busy X'
 
 TAG_MEDIA_OMITTED = '<Media omitted>'
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    '''
+    Overrides th default json encoder to handle datetim objects
+    '''
+    def default(self, obj):
+        if isinstance(obj, (datetime.date, datetime.datetime)):
+            return obj.isoformat()
 
 
 def am_pm_to_24hr(df):
@@ -79,8 +91,12 @@ def get_top_media_senders(df, n_authors=10):
         return top_media_df.head(n_authors)
 
 
-def get_busy_x(df, x, n_x=10):
-    date_time = df[KEY_DATE_TIME].dt
+def get_busy_x(df, x, n_x=10, drop_none=True):
+    df2 = df.copy()
+    if drop_none==True:
+        df2 = drop_none_author(df2)
+
+    date_time = df2[KEY_DATE_TIME].dt
     x_data_dict = {
         KEY_DATE: date_time.date,
         KEY_TIME: date_time.time,
@@ -92,7 +108,6 @@ def get_busy_x(df, x, n_x=10):
         KEY_SECOND: date_time.second
     }
 
-    df2 = df.copy()
     df2[KEY_BUSY_X] = x_data_dict[x]
     df3 = df2.groupby(KEY_BUSY_X, as_index=False).count() \
         .sort_values(by=[KEY_MESSAGE], ascending=False) \

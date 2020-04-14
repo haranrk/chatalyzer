@@ -105,9 +105,20 @@ def allowed_file(filename):
 def show_analysis(analysis_id):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], analysis_id) + '.txt'
     df = get_chats(file_path)
-    top_message_senders = json.dumps(analysis.get_top_message_senders(df,100).values.tolist())
+    df = analysis.add_date_time(df)
+    df = analysis.add_letter_count(df)
+    df = analysis.add_word_count(df)
+
+    top_message_senders = json.dumps(analysis.get_top_message_senders(df,-1).values.tolist())
     # import ipdb; ipdb.set_trace()
-    return render_template('chat_analysis.html', num_msgs=df.shape[0], top_message_senders=top_message_senders)
+    busiest_days = analysis.get_busy_x(df, "Date", -1)
+    daywise_message_count = busiest_days.sort_values("Busy X")
+    daywise_message_count = json.dumps(daywise_message_count.values.tolist(),cls=analysis.DateTimeEncoder)
+
+    return render_template('chat_analysis.html', 
+            num_msgs=df.shape[0], 
+            daywise_message_count=daywise_message_count,
+            top_message_senders=top_message_senders)
 
 @app.route('/uploader', methods=['GET', 'POST'])
 def upload_file():
