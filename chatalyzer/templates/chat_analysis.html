@@ -45,7 +45,7 @@
   <div class="bg-dark mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
     <div class="my-3 py-3">
       <h2 class="display-5">Daywise Messages</h2>
-      <!--<p class="lead">And an even wittier subheading.</p>-->
+      <p class="lead">Try zooming and panning</p>
     </div>
     <div id="daywise_messages" class="bg-dark " style="width: 80%; height: 300px;"></div>
   </div>
@@ -264,6 +264,17 @@ var zoom = d3.zoom()
     .on('zoom', zoomed)
 svg.call(zoom);
                     
+var avg = d3.sum(data, function(d){return d[1];})/data.length;
+
+var avgLine = d3.line()
+    .x(function(d,i){ return xScale(parseDate(d[0]));})
+    .y(function(d,i){ return yScale(avg);})
+
+svg.append("path")
+    .datum(data)
+    .attr("class", "mean")
+    .attr("d", avgLine)
+
 </script>
 </html>
 
