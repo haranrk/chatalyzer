@@ -264,16 +264,28 @@ var zoom = d3.zoom()
     .on('zoom', zoomed)
 svg.call(zoom);
                     
-var avg = d3.sum(data, function(d){return d[1];})/data.length;
+var avg = Math.round(d3.sum(data, function(d){return d[1];})/data.length);
+
+var avgData = [
+    xScale(parseDate(data[0][0]))-margin.left,
+    xScale(parseDate(data[data.length-1][0])),
+    ]
 
 var avgLine = d3.line()
-    .x(function(d,i){ return xScale(parseDate(d[0]));})
-    .y(function(d,i){ return yScale(avg);})
+    .x(function(d,i){ return d;})
+    .y(yScale(avg))
 
 svg.append("path")
-    .datum(data)
+    .datum(avgData)
     .attr("class", "mean")
     .attr("d", avgLine)
+
+svg.append("text")
+        .attr("transform", "translate(" + (avgData[0]) + "," + yScale(avg) + ")")
+        .attr("dy", "1em")
+        .classed("avg-text", true)
+        .attr("text-anchor", "beg")
+        .html("Average = " + avg);
 
 </script>
 </html>
