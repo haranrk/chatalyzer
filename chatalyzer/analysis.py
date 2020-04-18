@@ -24,9 +24,9 @@ TAG_MEDIA_OMITTED = '<Media omitted>'
 
 
 class DateTimeEncoder(json.JSONEncoder):
-    '''
-    Overrides th default json encoder to handle datetim objects
-    '''
+    """
+    Overrides the default json encoder to handle datetime objects
+    """
     def default(self, obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
             return obj.isoformat()
@@ -120,7 +120,7 @@ def get_top_x_count(df, x, n_authors=10):
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
             x (str) - KEY_LETTER_COUNT, KEY_WORD_COUNT
-            n_authors (int, default 10) - Number of top authors required
+            n_authors (int, default 10) - Number of top authors required (-1 to get all rows)
 
         Returns:
             Pandas.DataFrame ('Author', x)
@@ -143,7 +143,7 @@ def get_top_message_senders(df, n_authors=10):
 
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
-            n_authors (int, default 10) - Number of top authors required
+            n_authors (int, default 10) - Number of top authors required (-1 to get all rows)
 
         Returns:
             Pandas.DataFrame ('Author', 'Message Count')
@@ -167,7 +167,7 @@ def get_top_media_senders(df, n_authors=10):
 
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
-            n_authors (int, default 10) - Number of top authors required
+            n_authors (int, default 10) - Number of top authors required (-1 to get all rows)
 
         Returns:
             Pandas.DataFrame ('Author', 'Message Count')
@@ -192,14 +192,15 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
             x (str) - 'Date', 'Time', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'
-            n_x (int, default 10) - Number of instances required required
+            n_x (int, default 10) - Number of instances required required (-1 to get all rows)
+            drop_none
 
         Returns:
             Pandas.DataFrame ('Busy X', 'Message Count')
     """
 
     df2 = df.copy()
-    if drop_none==True:
+    if drop_none:
         df2 = drop_none_author(df2)
 
     date_time = df2[KEY_DATE_TIME].dt
@@ -277,7 +278,7 @@ def add_word_count(df):
     return df2
 
 
-def list_participants(df):
+def get_participant_list(df):
     """
     Returns a list of the group participants
 
@@ -291,15 +292,12 @@ def list_participants(df):
     return participant_list
 
 
-def group_timeline(df):
-    '''
-    Returns data containing when particpants joind and left the group
-    '''
+def get_group_timeline(df):
+    """
+    Returns data containing when participants joined and left the group
+    """
     pass
 
 
-def messages_per_day(df):
-    df1 = drop_none_author(df)
-
-
-
+def get_most_used_words(df):
+    pass
