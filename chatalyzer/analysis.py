@@ -227,6 +227,45 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
     else:
         return busy_x_df.head(n_x)
 
+def get_busy_x_authorwise(df,x,n_x, return_json ,drop_none=True ):
+    """
+    Authorwise, returns data containing the values of x and the number of messages corresponding to the x
+    Here, x is 'Date', 'Time', 'Year', 'Month'...
+        Arguments:
+            df (Pandas.DataFrame) - DataFrame of chats
+            x (str) - 'Date', 'Time', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'
+            n_x (int, default 10) - Number of instances required required (-1 to get all rows)
+            return_json - If True, returns in json instead of a dict of DataFrame
+            drop_none
+
+        Returns:
+        if return_json is False,
+           dict - Key: Author, Value: Corresponding Pandas.DataFrame ('Busy X', 'Message Count')
+        otherwise,
+           str - the json string of the data
+
+
+    """
+    df2 = df.copy()
+    if drop_none==True:
+        df2 = drop_none_author(df2)
+    participant_list = get_participant_list(df2)
+
+    data_dict = {}
+    for participant in participant_list:
+        participant_df = df2[df2[KEY_AUTHOR]==participant]
+        data_dict[participant]= get_busy_x(participant_df,x,n_x=n_x)
+
+    if return_json==True:
+        for participant in participant_list:
+            data_dict[participant] = data_dict[participant].values.tolist()
+
+        data_json = json.dumps(data_dict, cls=DateTimeEncoder)
+        return data_json
+    else:
+        return data_dict
+
+
 
 def add_date_time(df):
     """
