@@ -116,22 +116,23 @@ def show_analysis(analysis_id):
     df = analysis.add_letter_count(df)
     df = analysis.add_word_count(df)
 
-
     top_message_senders = json.dumps(analysis.get_top_message_senders(df, -1).values.tolist())
+    top_media_senders = json.dumps(analysis.get_top_media_senders(df, -1).values.tolist())
     word_count = json.dumps(analysis.get_top_x_count(df, analysis.KEY_WORD_COUNT, -1).values.tolist())
     letter_count = json.dumps(analysis.get_top_x_count(df, analysis.KEY_LETTER_COUNT, -1).values.tolist())
     busiest_days = analysis.get_busy_x(df, analysis.KEY_DATE, -1)
     daywise_message_count = busiest_days.sort_values("Busy X")
     daywise_message_count = json.dumps(daywise_message_count.values.tolist(), cls=analysis.DateTimeEncoder)
 
-    authorwise_daywise_message_count = analysis.get_busy_x_authorwise(df,analysis.KEY_DATE,-1,True)
+    authorwise_daywise_message_count = analysis.get_busy_x_authorwise(df, analysis.KEY_DATE, -1, True)
     # import ipdb; ipdb.set_trace()
     return render_template('chat_analysis.html',
                            num_msgs=df.shape[0],
                            daywise_message_count=daywise_message_count,
                            letter_count=letter_count,
                            word_count=word_count,
-                           top_message_senders=top_message_senders)
+                           top_message_senders=top_message_senders,
+                           top_media_senders=top_media_senders)
 
 
 @app.route('/uploader', methods=['GET', 'POST'])
