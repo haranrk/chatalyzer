@@ -4,7 +4,6 @@ import json
 import emoji
 from collections import Counter
 
-
 KEY_DATE = 'Date'
 KEY_TIME = 'Time'
 KEY_AUTHOR = 'Author'
@@ -31,6 +30,7 @@ class DateTimeEncoder(json.JSONEncoder):
     """
     Overrides the default json encoder to handle datetime objects
     """
+
     def default(self, obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
             return obj.isoformat()
@@ -112,7 +112,7 @@ def get_date_time(df):
             Pandas.DatatimeIndex
     """
     df2 = am_pm_to_24hr(df)
-    date_time = pd.to_datetime(df2[KEY_DATE]+':'+df2[KEY_TIME], format='%d/%m/%y:%H:%M:%S')
+    date_time = pd.to_datetime(df2[KEY_DATE] + ':' + df2[KEY_TIME], format='%d/%m/%y:%H:%M:%S')
     return date_time
 
 
@@ -123,14 +123,14 @@ def get_top_x_count(df, x, n_authors=10):
 
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
-            x (str) - 'Letter Count', 'Word Count'
+            x (str) - KEY_LETTER_COUNT, KEY_WORD_COUNT
             n_authors (int, default 10) - Number of top authors required (-1 to get all rows)
 
         Returns:
             Pandas.DataFrame ('Author', x)
     """
-    df2 = df.groupby(KEY_AUTHOR, as_index=False).sum()\
-        .sort_values(by=[x], ascending=False)\
+    df2 = df.groupby(KEY_AUTHOR, as_index=False).sum() \
+        .sort_values(by=[x], ascending=False) \
         .reset_index(drop=True)
 
     top_x_df = df2[[KEY_AUTHOR, x]]
@@ -152,9 +152,9 @@ def get_top_message_senders(df, n_authors=10):
         Returns:
             Pandas.DataFrame ('Author', 'Message Count')
     """
-    df2 = df.groupby(KEY_AUTHOR, as_index=False).count()\
-        .sort_values(by=[KEY_MESSAGE], ascending=False)\
-        .reset_index(drop=True)\
+    df2 = df.groupby(KEY_AUTHOR, as_index=False).count() \
+        .sort_values(by=[KEY_MESSAGE], ascending=False) \
+        .reset_index(drop=True) \
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
     top_message_df = df2[[KEY_AUTHOR, KEY_MESSAGE_COUNT]]
@@ -177,9 +177,9 @@ def get_top_media_senders(df, n_authors=10):
             Pandas.DataFrame ('Author', 'Message Count')
     """
     media_messages = get_media_messages(df)
-    df2 = media_messages.groupby(KEY_AUTHOR, as_index=False).count()\
-        .sort_values(by=[KEY_MESSAGE], ascending=False)\
-        .reset_index(drop=True)\
+    df2 = media_messages.groupby(KEY_AUTHOR, as_index=False).count() \
+        .sort_values(by=[KEY_MESSAGE], ascending=False) \
+        .reset_index(drop=True) \
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
     top_media_df = df2[[KEY_AUTHOR, KEY_MESSAGE_COUNT]]
@@ -193,7 +193,6 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
     """
     Returns a Pandas DataFrame containing the values of x and the number of messages corresponding to the x
     Here, x is 'Date', 'Time', 'Year', 'Month'...
-
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
             x (str) - 'Date', 'Time', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'
@@ -203,6 +202,7 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
         Returns:
             Pandas.DataFrame ('Busy X', 'Message Count')
     """
+
     df2 = df.copy()
     if drop_none:
         df2 = drop_none_author(df2)
@@ -222,7 +222,7 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
     df2[KEY_BUSY_X] = x_data_dict[x]
     df3 = df2.groupby(KEY_BUSY_X, as_index=False).count() \
         .sort_values(by=[KEY_MESSAGE], ascending=False) \
-        .reset_index(drop=True)\
+        .reset_index(drop=True) \
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
     busy_x_df = df3[[KEY_BUSY_X, KEY_MESSAGE_COUNT]]
@@ -230,6 +230,43 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
         return busy_x_df
     else:
         return busy_x_df.head(n_x)
+
+
+def get_busy_x_authorwise(df, x, n_x, return_json, drop_none=True):
+    """
+    Authorwise, returns data containing the values of x and the number of messages corresponding to the x
+    Here, x is 'Date', 'Time', 'Year', 'Month'...
+        Arguments:
+            df (Pandas.DataFrame) - DataFrame of chats
+            x (str) - 'Date', 'Time', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'
+            n_x (int, default 10) - Number of instances required required (-1 to get all rows)
+            return_json - If True, returns in json instead of a dict of DataFrame
+            drop_none
+
+        Returns:
+        if return_json is False,
+           dict - Key: Author, Value: Corresponding Pandas.DataFrame ('Busy X', 'Message Count')
+        otherwise,
+           str - the json string of the data
+    """
+    df2 = df.copy()
+    if drop_none:
+        df2 = drop_none_author(df2)
+    participant_list = get_participant_list(df2)
+
+    data_dict = {}
+    for participant in participant_list:
+        participant_df = df2[df2[KEY_AUTHOR] == participant]
+        data_dict[participant] = get_busy_x(participant_df, x, n_x=n_x)
+
+    if return_json:
+        for participant in participant_list:
+            data_dict[participant] = data_dict[participant].values.tolist()
+
+        data_json = json.dumps(data_dict, cls=DateTimeEncoder)
+        return data_json
+    else:
+        return data_dict
 
 
 def get_common_words(df, n_words=10, other=False):
@@ -256,7 +293,7 @@ def get_common_words(df, n_words=10, other=False):
     if other:
         total_words = len(word_list)
         total_common_words = sum(map(lambda x: x[1], common_words))
-        common_words.append(('other', total_words-total_common_words))
+        common_words.append(('other', total_words - total_common_words))
 
     common_words_df = pd.DataFrame(common_words, columns=[KEY_WORD, KEY_WORD_COUNT])
     return common_words_df
@@ -284,7 +321,7 @@ def get_common_emojis(df, n_emojis=10, other=False):
     if other:
         total_emojis = len(emoji_list)
         total_common_emojis = sum(map(lambda x: x[1], common_emojis))
-        common_emojis.append(('other', total_emojis-total_common_emojis))
+        common_emojis.append(('other', total_emojis - total_common_emojis))
 
     common_emojis_df = pd.DataFrame(common_emojis, columns=[KEY_EMOJI, KEY_EMOJI_COUNT])
     return common_emojis_df
@@ -358,4 +395,8 @@ def get_group_timeline(df):
     """
     Returns data containing when participants joined and left the group
     """
+    pass
+
+
+def get_most_used_words(df):
     pass
