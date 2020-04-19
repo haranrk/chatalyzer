@@ -1,7 +1,8 @@
 import pandas as pd
 import datetime
 import json
-
+import emoji
+from collections import Counter
 
 
 KEY_DATE = 'Date'
@@ -19,6 +20,9 @@ KEY_LETTER_COUNT = 'Letter Count'
 KEY_WORD_COUNT = 'Word Count'
 KEY_MESSAGE_COUNT = 'Message Count'
 KEY_BUSY_X = 'Busy X'
+KEY_WORD = 'Word'
+KEY_EMOJI = 'Emoji'
+KEY_EMOJI_COUNT = 'Emoji Count'
 
 TAG_MEDIA_OMITTED = '<Media omitted>'
 
@@ -119,7 +123,7 @@ def get_top_x_count(df, x, n_authors=10):
 
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
-            x (str) - KEY_LETTER_COUNT, KEY_WORD_COUNT
+            x (str) - 'Letter Count', 'Word Count'
             n_authors (int, default 10) - Number of top authors required (-1 to get all rows)
 
         Returns:
@@ -189,6 +193,7 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
     """
     Returns a Pandas DataFrame containing the values of x and the number of messages corresponding to the x
     Here, x is 'Date', 'Time', 'Year', 'Month'...
+
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
             x (str) - 'Date', 'Time', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'
@@ -198,7 +203,6 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
         Returns:
             Pandas.DataFrame ('Busy X', 'Message Count')
     """
-
     df2 = df.copy()
     if drop_none:
         df2 = drop_none_author(df2)
@@ -226,6 +230,64 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
         return busy_x_df
     else:
         return busy_x_df.head(n_x)
+
+
+def get_common_words(df, n_words=10, other=False):
+    """
+    Returns a Pandas DataFrame containing the common words and their count sorted in descending order
+
+        Arguments:
+            df (Pandas.DataFrame) - DataFrame of chats
+            n_words (int, default 10) - Number of common words required
+            other (bool, default False) - Set True if count of other words is to be added to the DataFrame
+
+        Returns:
+            Pandas.DataFrame ('Word', 'Word Count')
+    """
+    df = drop_media_messages(df)
+
+    word_list = []
+    for message in df[KEY_MESSAGE]:
+        word_list.extend(message.split())
+
+    counter = Counter(word_list)
+    common_words = counter.most_common(n_words)
+
+    if other:
+        total_words = len(word_list)
+        total_common_words = sum(map(lambda x: x[1], common_words))
+        common_words.append(('other', total_words-total_common_words))
+
+    common_words_df = pd.DataFrame(common_words, columns=[KEY_WORD, KEY_WORD_COUNT])
+    return common_words_df
+
+
+def get_common_emojis(df, n_emojis=10, other=False):
+    """
+    Returns a Pandas DataFrame containing the common emojis and their count sorted in descending order
+
+        Arguments:
+            df (Pandas.DataFrame) - DataFrame of chats
+            n_emojis (int, default 10) - Number of common emojis required
+            other (bool, default False) - Set True if count of other emojis is to be added to the DataFrame
+
+        Returns:
+            Pandas.DataFrame ('Emoji', 'Emoji Count')
+    """
+    emoji_list = []
+    for message in df[KEY_MESSAGE]:
+        emoji_list.extend([c for c in message if c in emoji.UNICODE_EMOJI])
+
+    counter = Counter(emoji_list)
+    common_emojis = counter.most_common(n_emojis)
+
+    if other:
+        total_emojis = len(emoji_list)
+        total_common_emojis = sum(map(lambda x: x[1], common_emojis))
+        common_emojis.append(('other', total_emojis-total_common_emojis))
+
+    common_emojis_df = pd.DataFrame(common_emojis, columns=[KEY_EMOJI, KEY_EMOJI_COUNT])
+    return common_emojis_df
 
 
 def add_date_time(df):
@@ -296,8 +358,4 @@ def get_group_timeline(df):
     """
     Returns data containing when participants joined and left the group
     """
-    pass
-
-
-def get_most_used_words(df):
     pass
