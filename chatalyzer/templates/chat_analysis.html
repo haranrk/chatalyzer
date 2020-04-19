@@ -61,10 +61,10 @@
   </div>
   <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
     <div class="my-3 py-3">
-      <h2 class="display-5">Another headline</h2>
-      <p class="lead">And an even wittier subheading.</p>
+      <h2 class="display-5">Common Emojis</h2>
+      <!-- <p class="lead">And an even wittier subheading.</p> -->
     </div>
-    <div class="bg-white shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
+    <div id="common_emojis" class="bg-light" style="width: 80%; height: 300px;"></div>
   </div>
 </div>
 
@@ -153,6 +153,9 @@ barGraph("#letter_count", letter_count);
 
 var top_media_senders = {{ top_media_senders|safe }};
 barGraph("#top_media_senders", top_media_senders)
+
+var common_emojis = {{ common_emojis|safe }}
+barGraph("#common_emojis", common_emojis)
 </script>
 <script>
 function parseDate(x){

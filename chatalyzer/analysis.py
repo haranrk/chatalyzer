@@ -275,7 +275,7 @@ def get_common_words(df, n_words=10, other=False):
 
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
-            n_words (int, default 10) - Number of common words required
+            n_words (int, default 10) - Number of common words required (-1 to get all rows)
             other (bool, default False) - Set True if count of other words is to be added to the DataFrame
 
         Returns:
@@ -288,7 +288,11 @@ def get_common_words(df, n_words=10, other=False):
         word_list.extend(message.split())
 
     counter = Counter(word_list)
-    common_words = counter.most_common(n_words)
+
+    if n_words == -1:
+        common_words = list(counter.items())
+    else:
+        common_words = counter.most_common(n_words)
 
     if other:
         total_words = len(word_list)
@@ -305,7 +309,7 @@ def get_common_emojis(df, n_emojis=10, other=False):
 
         Arguments:
             df (Pandas.DataFrame) - DataFrame of chats
-            n_emojis (int, default 10) - Number of common emojis required
+            n_emojis (int, default 10) - Number of common emojis required (-1 to get all rows)
             other (bool, default False) - Set True if count of other emojis is to be added to the DataFrame
 
         Returns:
@@ -316,6 +320,12 @@ def get_common_emojis(df, n_emojis=10, other=False):
         emoji_list.extend([c for c in message if c in emoji.UNICODE_EMOJI])
 
     counter = Counter(emoji_list)
+
+    if n_emojis == -1:
+        common_emojis = list(counter.items())
+    else:
+        common_emojis = counter.most_common(n_emojis)
+
     common_emojis = counter.most_common(n_emojis)
 
     if other:
