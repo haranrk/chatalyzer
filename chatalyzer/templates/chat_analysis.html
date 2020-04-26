@@ -52,10 +52,27 @@
 </div>
 
 <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
+  <div class="bg-dark mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
+    <div class="my-3 p-3">
+      <h2 class="display-5">Top Media Senders</h2>
+      <!-- <p class="lead">And an even wittier subheading.</p> -->
+    </div>
+    <div id="top_media_senders" class="bg-dark " style="width: 80%; height: 300px;"></div>
+  </div>
+  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+    <div class="my-3 py-3">
+      <h2 class="display-5">Common Emojis</h2>
+      <!-- <p class="lead">And an even wittier subheading.</p> -->
+    </div>
+    <div id="common_emojis" class="bg-light" style="width: 80%; height: 300px;"></div>
+  </div>
+</div>
+
+<div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
   <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
     <div class="my-3 p-3">
       <h2 class="display-5">Daywise messages by author</h2>
-      <!--<p class="lead">And an even wittier subheading.</p>-->
+      <p class="lead">And an even wittier subheading.</p>
     </div>
     <div id="authorwise_daywise_messages" class="bg-light " style="width: 80%; height: 300px;"></div>
   </div>
@@ -67,24 +84,7 @@
     <div class="bg-white shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
   </div>
 </div>
-
-<div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
-  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
-    <div class="my-3 p-3">
-      <h2 class="display-5">Another headline</h2>
-      <p class="lead">And an even wittier subheading.</p>
-    </div>
-    <div class="bg-white shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
-  </div>
-  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
-    <div class="my-3 py-3">
-      <h2 class="display-5">Another headline</h2>
-      <p class="lead">And an even wittier subheading.</p>
-    </div>
-    <div class="bg-white shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
-  </div>
-</div>
-    </body>
+</body>
 
 <script src={{ url_for('static', filename='js/jquery-3.4.1.min.js') }} ></script>
 <script src={{ url_for('static', filename='js/bootstrap.bundle.min.js') }} ></script>
@@ -92,58 +92,57 @@
 <!--<script src={{ url_for('static', filename='js/analysis.js') }} ></script>-->
 <script>
 function barGraph(svgId, data){
-    var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
-    var graphHeight = data.length*15;
-    var graphWidth = 600;
-    var h = margin.top+graphHeight+margin.bottom;
-    var w = margin.left + graphWidth+ margin.right;
+  var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
+  var graphHeight = data.length*15;
+  var graphWidth = 600;
+  var h = margin.top+graphHeight+margin.bottom;
+  var w = margin.left + graphWidth+ margin.right;
 
-    var svg = d3.select(svgId)
-                .append("svg")
-                .attr("width", w)
-                .attr("height", h);
+  var svg = d3.select(svgId)
+      .append("svg")
+      .attr("width", w)
+      .attr("height", h);
 
-    var yScale = d3.scaleBand()
-                    .domain(data.map(x => x[0]))
-                    .range([margin.top, margin.top+graphHeight]);
+  var yScale = d3.scaleBand()
+      .domain(data.map(x => x[0]))
+      .range([margin.top, margin.top+graphHeight]);
 
-    var xScale = d3.scaleLinear()
-                        .domain([0, d3.max(data, function(d) { return d[1] })]).nice()
-                        .range([0, graphWidth]);
+  var xScale = d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) { return d[1] })]).nice()
+      .range([0, graphWidth]);
 
-    var colorScale = d3.scaleLinear()
-                        .domain([0, d3.max(data, function(d) { return d[1] })])
-                        .range([0, 1]);
+  var colorScale = d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) { return d[1] })])
+      .range([0, 1]);
 
-    var graph = svg.append("g").attr("class","bar-graph")
+  var graph = svg.append("g").attr("class","bar-graph");
 
-    graph.selectAll("rect")
-            .data(data)
-            .enter()
-            .append("rect")
-            .attr("width", function(d) { return xScale(d[1]) })
-            .attr("height", function(d) { return yScale.bandwidth() })
-            .attr("x", function(d) { return margin.left+xScale(0) })
-            .attr("y", function(d) { return yScale(d[0])})
-            .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))})
+  graph.selectAll("rect")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("width", function(d) { return xScale(d[1]) })
+      .attr("height", function(d) { return yScale.bandwidth() })
+      .attr("x", function(d) { return margin.left+xScale(0) })
+      .attr("y", function(d) { return yScale(d[0])})
+      .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))});
 
-    var xAxis = d3.axisTop()
-                    .scale(xScale);
-    var yAxis = d3.axisLeft()
-                    .scale(yScale);
+  var xAxis = d3.axisTop().scale(xScale);
+  var yAxis = d3.axisLeft().scale(yScale);
 
-    svg.append("g")
-        .attr("id", "x-axis")
-        .classed("axis", true)
-        .attr("transform", "translate("+margin.left+","+margin.top+")")
-        .call(xAxis);
+  svg.append("g")
+      .attr("id", "x-axis")
+      .classed("axis", true)
+      .attr("transform", "translate("+margin.left+","+margin.top+")")
+      .call(xAxis);
 
-    svg.append("g")
-        .attr("id", "y-axis")
-        .classed("axis", true)
-        .attr("transform", "translate("+margin.left+","+0+")")
-        .call(yAxis);
+  svg.append("g")
+      .attr("id", "y-axis")
+      .classed("axis", true)
+      .attr("transform", "translate("+margin.left+","+0+")")
+      .call(yAxis);
 }
+
 var top_message_senders = {{ top_message_senders|safe }};
 barGraph("#top_message_senders", top_message_senders);
 
@@ -152,57 +151,61 @@ barGraph("#word_count", word_count);
 
 var letter_count = {{ letter_count|safe }};
 barGraph("#letter_count", letter_count);
+
+var top_media_senders = {{ top_media_senders|safe }};
+barGraph("#top_media_senders", top_media_senders)
+
+var common_emojis = {{ common_emojis|safe }}
+barGraph("#common_emojis", common_emojis)
 </script>
 <script>
 // Daywise messages graph
-function zoomGraph()  {
-var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
-var graphWidth = 600;
-var graphHeight = 220;
-var h = margin.top + graphHeight + margin.bottom;
-var w = margin.left + graphWidth+ margin.right;
 
-divId = "daywise_messages"
-    var svg = d3.select(`#${divId}`)
-            .append("svg")
-            .attr("width", w)
-            .attr("height", h);
+function zoomableBarGraph(svgId, data) {
+  var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
+  var graphWidth = 600;
+  var graphHeight = 220;
+  var h = margin.top + graphHeight + margin.bottom;
+  var w = margin.left + graphWidth+ margin.right;
+  var buttonsPaddingRight = 350;
+  var buttonsPaddingInner = 0.1;
 
-clipId = `${divId}_graph_clipper`
-
-svg.append("clipPath")
-      .attr("id", clipId)
-    .append("rect")
-      .attr("x", margin.left)
-      .attr("y", 0)
-      .attr("width", graphWidth)
+    var svg = d3.select(`#${svgId}`)
+      .append("svg")
+      .attr("width", w)
       .attr("height", h);
 
+    clipId = `${svgId}_graph_clipper`
 
-var data = {{ daywise_message_count|safe }};
+    svg.append("clipPath")
+          .attr("id", clipId)
+        .append("rect")
+          .attr("x", margin.left)
+          .attr("y", 0)
+          .attr("width", graphWidth)
+          .attr("height", h);
+    
+    function parseDate(x){
+        d = new Date(x);
+        d.setDate(d.getDate()-1);
+        d.setHours(12);
+        d.setMinutes(0);
+        return d;
+    }
+  var xScale = d3.scaleTime()
+      .domain([data[0], data[data.length -1]].map(x => parseDate(x[0])))
+      .range([margin.left, margin.left+ graphWidth]);
 
-function parseDate(x){
-    d = new Date(x);
-    d.setDate(d.getDate()-1);
-    d.setHours(12);
-    d.setMinutes(0);
-    return d;
-}
+  var yScale = d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) { return d[1] })])
+      .range([margin.top+graphHeight,margin.top]);
 
-var xScale = d3.scaleTime()
-    .domain([data[0], data[data.length -1]].map(x => parseDate(x[0])))
-    .range([margin.left, margin.left+ graphWidth]);
+  var colorScale = d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) { return d[1] })])
+      .range([0, 1]);
 
-var yScale = d3.scaleLinear()
-    .domain([0, d3.max(data, function(d) { return d[1] })])
-    .range([margin.top+graphHeight,margin.top]);
-
-var colorScale = d3.scaleLinear()
-                    .domain([0, d3.max(data, function(d) { return d[1] })])
-                    .range([0, 1]);
-
-var graph = svg.append("g")
-    .attr("clip-path", `url(#${clipId})` )
+    var graph = svg.append("g")
+        .attr("clip-path", `url(#${clipId})` )
 
 function getBarWidth(scale){
     var a = new Date;
@@ -243,54 +246,53 @@ svg.append("g")
 
 function zoomed() {
     var transform = d3.event.transform;
-
     xScaleNew = transform.rescaleX(xScale);
-
     var barWidth = getBarWidth(xScaleNew);
 
     graph.selectAll("rect")
         .attr("width", function(d) { return barWidth; })
-        .attr("x", function(d) { return xScaleNew(parseDate(d[0])) })
+        .attr("x", function(d) { return xScaleNew(parseDate(d[0])) });
 
     xAxis.scale(xScaleNew);
     d3.select("#daywise_messages #x-axis").call(xAxis);
+  }
 
-    }
-const extent = [[margin.left, margin.top], [w- margin.right, h- margin.top]];
+  const extent = [[margin.left, margin.top], [w- margin.right, h- margin.top]];
 
-var zoom = d3.zoom()
-    .scaleExtent([1, Infinity])
-    .translateExtent(extent)
-    .extent(extent)
-    .on('zoom', zoomed)
-svg.call(zoom);
-                    
-var avg = Math.round(d3.sum(data, function(d){return d[1];})/data.length);
+  var zoom = d3.zoom()
+      .scaleExtent([1, Infinity])
+      .translateExtent(extent)
+      .extent(extent)
+      .on('zoom', zoomed);
+  
+  svg.call(zoom);
+                      
+  var avg = Math.round(d3.sum(data, function(d){return d[1];})/data.length);
 
-var avgData = [
-    xScale(parseDate(data[0][0]))-margin.left,
-    xScale(parseDate(data[data.length-1][0])),
-    ]
+  var avgData = [
+      xScale(parseDate(data[0][0]))-margin.left,
+      xScale(parseDate(data[data.length-1][0])),
+      ];
 
-var avgLine = d3.line()
-    .x(function(d,i){ return d;})
-    .y(yScale(avg))
+  var avgLine = d3.line()
+      .x(function(d,i){ return d;})
+      .y(yScale(avg));
 
-svg.append("path")
-    .datum(avgData)
-    .attr("class", "mean")
-    .attr("d", avgLine)
+  svg.append("path")
+      .datum(avgData)
+      .attr("class", "mean")
+      .attr("d", avgLine);
 
-svg.append("text")
-        .attr("transform", "translate(" + (avgData[0]) + "," + yScale(avg) + ")")
-        .attr("dy", "1em")
-        .classed("avg-text", true)
-        .attr("text-anchor", "beg")
-        .html("Average = " + avg);
-
+  svg.append("text")
+      .attr("transform", "translate(" + (avgData[0]) + "," + yScale(avg) + ")")
+      .attr("dy", "1em")
+      .classed("avg-text", true)
+      .attr("text-anchor", "beg")
+      .html("Average = " + avg);
 }
 
-zoomGraph()
+var daywise_message_count = {{ daywise_message_count|safe }};
+zoomableBarGraph("daywise_messages", daywise_message_count);
 </script>
 <script>
 // Authorwise Daywise messages

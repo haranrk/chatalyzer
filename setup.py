@@ -12,7 +12,8 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         'tqdm',
-        'Jinja2',
+        'flask',
+        'emoji',
         'pandas'
         ],
     entry_points='''

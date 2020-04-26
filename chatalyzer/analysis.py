@@ -1,8 +1,8 @@
 import pandas as pd
 import datetime
 import json
-
-
+import emoji
+from collections import Counter
 
 KEY_DATE = 'Date'
 KEY_TIME = 'Time'
@@ -19,6 +19,9 @@ KEY_LETTER_COUNT = 'Letter Count'
 KEY_WORD_COUNT = 'Word Count'
 KEY_MESSAGE_COUNT = 'Message Count'
 KEY_BUSY_X = 'Busy X'
+KEY_WORD = 'Word'
+KEY_EMOJI = 'Emoji'
+KEY_EMOJI_COUNT = 'Emoji Count'
 
 TAG_MEDIA_OMITTED = '<Media omitted>'
 
@@ -27,6 +30,7 @@ class DateTimeEncoder(json.JSONEncoder):
     """
     Overrides the default json encoder to handle datetime objects
     """
+
     def default(self, obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
             return obj.isoformat()
@@ -108,7 +112,7 @@ def get_date_time(df):
             Pandas.DatatimeIndex
     """
     df2 = am_pm_to_24hr(df)
-    date_time = pd.to_datetime(df2[KEY_DATE]+':'+df2[KEY_TIME], format='%d/%m/%y:%H:%M:%S')
+    date_time = pd.to_datetime(df2[KEY_DATE] + ':' + df2[KEY_TIME], format='%d/%m/%y:%H:%M:%S')
     return date_time
 
 
@@ -125,8 +129,8 @@ def get_top_x_count(df, x, n_authors=10):
         Returns:
             Pandas.DataFrame ('Author', x)
     """
-    df2 = df.groupby(KEY_AUTHOR, as_index=False).sum()\
-        .sort_values(by=[x], ascending=False)\
+    df2 = df.groupby(KEY_AUTHOR, as_index=False).sum() \
+        .sort_values(by=[x], ascending=False) \
         .reset_index(drop=True)
 
     top_x_df = df2[[KEY_AUTHOR, x]]
@@ -148,9 +152,9 @@ def get_top_message_senders(df, n_authors=10):
         Returns:
             Pandas.DataFrame ('Author', 'Message Count')
     """
-    df2 = df.groupby(KEY_AUTHOR, as_index=False).count()\
-        .sort_values(by=[KEY_MESSAGE], ascending=False)\
-        .reset_index(drop=True)\
+    df2 = df.groupby(KEY_AUTHOR, as_index=False).count() \
+        .sort_values(by=[KEY_MESSAGE], ascending=False) \
+        .reset_index(drop=True) \
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
     top_message_df = df2[[KEY_AUTHOR, KEY_MESSAGE_COUNT]]
@@ -173,9 +177,9 @@ def get_top_media_senders(df, n_authors=10):
             Pandas.DataFrame ('Author', 'Message Count')
     """
     media_messages = get_media_messages(df)
-    df2 = media_messages.groupby(KEY_AUTHOR, as_index=False).count()\
-        .sort_values(by=[KEY_MESSAGE], ascending=False)\
-        .reset_index(drop=True)\
+    df2 = media_messages.groupby(KEY_AUTHOR, as_index=False).count() \
+        .sort_values(by=[KEY_MESSAGE], ascending=False) \
+        .reset_index(drop=True) \
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
     top_media_df = df2[[KEY_AUTHOR, KEY_MESSAGE_COUNT]]
@@ -246,11 +250,9 @@ def get_busy_x_authorwise(df,x,n_x, return_json, sort=False, drop_none=True ):
            dict - Key: Author, Value: Corresponding Pandas.DataFrame ('Busy X', 'Message Count')
         otherwise,
            str - the json string of the data
-
-
     """
     df2 = df.copy()
-    if drop_none==True:
+    if drop_none:
         df2 = drop_none_author(df2)
     participant_list = get_participant_list(df2)
 
@@ -268,6 +270,73 @@ def get_busy_x_authorwise(df,x,n_x, return_json, sort=False, drop_none=True ):
     else:
         return data_list
 
+
+def get_common_words(df, n_words=10, other=False):
+    """
+    Returns a Pandas DataFrame containing the common words and their count sorted in descending order
+
+        Arguments:
+            df (Pandas.DataFrame) - DataFrame of chats
+            n_words (int, default 10) - Number of common words required (-1 to get all rows)
+            other (bool, default False) - Set True if count of other words is to be added to the DataFrame
+
+        Returns:
+            Pandas.DataFrame ('Word', 'Word Count')
+    """
+    df = drop_media_messages(df)
+
+    word_list = []
+    for message in df[KEY_MESSAGE]:
+        word_list.extend(message.split())
+
+    counter = Counter(word_list)
+
+    if n_words == -1:
+        common_words = list(counter.items())
+    else:
+        common_words = counter.most_common(n_words)
+
+    if other:
+        total_words = len(word_list)
+        total_common_words = sum(map(lambda x: x[1], common_words))
+        common_words.append(('other', total_words - total_common_words))
+
+    common_words_df = pd.DataFrame(common_words, columns=[KEY_WORD, KEY_WORD_COUNT])
+    return common_words_df
+
+
+def get_common_emojis(df, n_emojis=10, other=False):
+    """
+    Returns a Pandas DataFrame containing the common emojis and their count sorted in descending order
+
+        Arguments:
+            df (Pandas.DataFrame) - DataFrame of chats
+            n_emojis (int, default 10) - Number of common emojis required (-1 to get all rows)
+            other (bool, default False) - Set True if count of other emojis is to be added to the DataFrame
+
+        Returns:
+            Pandas.DataFrame ('Emoji', 'Emoji Count')
+    """
+    emoji_list = []
+    for message in df[KEY_MESSAGE]:
+        emoji_list.extend([c for c in message if c in emoji.UNICODE_EMOJI])
+
+    counter = Counter(emoji_list)
+
+    if n_emojis == -1:
+        common_emojis = list(counter.items())
+    else:
+        common_emojis = counter.most_common(n_emojis)
+
+    common_emojis = counter.most_common(n_emojis)
+
+    if other:
+        total_emojis = len(emoji_list)
+        total_common_emojis = sum(map(lambda x: x[1], common_emojis))
+        common_emojis.append(('other', total_emojis - total_common_emojis))
+
+    common_emojis_df = pd.DataFrame(common_emojis, columns=[KEY_EMOJI, KEY_EMOJI_COUNT])
+    return common_emojis_df
 
 
 def add_date_time(df):
