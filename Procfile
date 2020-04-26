@@ -1,1 +1,1 @@
-web: chatalyze --log-file -
+web: gunicorn chatalyzer:chatalyzer --log-file -
