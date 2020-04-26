@@ -1,1 +1,1 @@
-web: gunicorn chatalyzer:chatalyzer --log-file -
+web: gunicorn -b :$PORT chatalyzer.chatalyzer:app --log-file -
