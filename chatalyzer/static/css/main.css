@@ -1,7 +1,9 @@
+.legend text {
+    font-size: 10px;
+}
 .avg-text {
     font-size: 10px;
     fill: white;
-
 }
 .mean{
     stroke-width: 1px;

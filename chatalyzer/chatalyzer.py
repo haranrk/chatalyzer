@@ -127,6 +127,7 @@ def show_analysis(analysis_id):
     authorwise_daywise_message_count = analysis.get_busy_x_authorwise(df,analysis.KEY_DATE,-1,True)
     # import ipdb; ipdb.set_trace()
     return render_template('chat_analysis.html',
+                           authorwise_daywise_message_count=authorwise_daywise_message_count,
                            num_msgs=df.shape[0],
                            daywise_message_count=daywise_message_count,
                            letter_count=letter_count,

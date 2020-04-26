@@ -185,7 +185,7 @@ def get_top_media_senders(df, n_authors=10):
         return top_media_df.head(n_authors)
 
 
-def get_busy_x(df, x, n_x=10, drop_none=True):
+def get_busy_x(df, x, n_x=10, sort=False, drop_none=True):
     """
     Returns a Pandas DataFrame containing the values of x and the number of messages corresponding to the x
     Here, x is 'Date', 'Time', 'Year', 'Month'...
@@ -193,7 +193,8 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
             df (Pandas.DataFrame) - DataFrame of chats
             x (str) - 'Date', 'Time', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'
             n_x (int, default 10) - Number of instances required required (-1 to get all rows)
-            drop_none
+            sort (bool) - If True, sorts by x. Else, sort by date.
+            drop_none (bool) - If True, drops the 'None' author if not already removed.
 
         Returns:
             Pandas.DataFrame ('Busy X', 'Message Count')
@@ -216,9 +217,10 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
     }
 
     df2[KEY_BUSY_X] = x_data_dict[x]
-    df3 = df2.groupby(KEY_BUSY_X, as_index=False).count() \
-        .sort_values(by=[KEY_MESSAGE], ascending=False) \
-        .reset_index(drop=True)\
+    df3 = df2.groupby(KEY_BUSY_X, as_index=False).count() 
+    if sort==True:
+        df3 = df3.sort_values(by=[KEY_MESSAGE], ascending=False)
+    df3 = df3.reset_index(drop=True)\
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
     busy_x_df = df3[[KEY_BUSY_X, KEY_MESSAGE_COUNT]]
@@ -227,7 +229,7 @@ def get_busy_x(df, x, n_x=10, drop_none=True):
     else:
         return busy_x_df.head(n_x)
 
-def get_busy_x_authorwise(df,x,n_x, return_json ,drop_none=True ):
+def get_busy_x_authorwise(df,x,n_x, return_json, sort=False, drop_none=True ):
     """
     Authorwise, returns data containing the values of x and the number of messages corresponding to the x
     Here, x is 'Date', 'Time', 'Year', 'Month'...
@@ -236,7 +238,8 @@ def get_busy_x_authorwise(df,x,n_x, return_json ,drop_none=True ):
             x (str) - 'Date', 'Time', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'
             n_x (int, default 10) - Number of instances required required (-1 to get all rows)
             return_json - If True, returns in json instead of a dict of DataFrame
-            drop_none
+            sort (bool) - If True, sorts by x. Else, sort by date.
+            drop_none (bool) - If True, drops the 'None' author if not already removed.
 
         Returns:
         if return_json is False,
@@ -251,19 +254,19 @@ def get_busy_x_authorwise(df,x,n_x, return_json ,drop_none=True ):
         df2 = drop_none_author(df2)
     participant_list = get_participant_list(df2)
 
-    data_dict = {}
+    data_list = []
     for participant in participant_list:
         participant_df = df2[df2[KEY_AUTHOR]==participant]
-        data_dict[participant]= get_busy_x(participant_df,x,n_x=n_x)
+        data_list.append([participant, get_busy_x(participant_df,x,n_x=n_x, sort=sort)])
 
     if return_json==True:
-        for participant in participant_list:
-            data_dict[participant] = data_dict[participant].values.tolist()
+        for i in range(len(data_list)):
+            data_list[i][1] = data_list[i][1].values.tolist()
 
-        data_json = json.dumps(data_dict, cls=DateTimeEncoder)
+        data_json = json.dumps(data_list, cls=DateTimeEncoder)
         return data_json
     else:
-        return data_dict
+        return data_list
 
 
 
