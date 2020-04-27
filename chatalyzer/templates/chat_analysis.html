@@ -22,7 +22,7 @@
       <h2 class="display-5">Total Message Count</h2>
       <!--<p class="lead">And an even wittier subheading.</p>-->
     </div>
-    <div id="top_message_senders" class="bg-dark " style="width: 80%; height: 300px;"></div>
+    <div id="top_message_senders" class="bg-dark text-white" style="width: 80%; height: 300px;"></div>
 
   </div>
   <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
@@ -126,6 +126,17 @@ function barGraph(svgId, data){
       .attr("x", function(d) { return margin.left+xScale(0) })
       .attr("y", function(d) { return yScale(d[0])})
       .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))});
+
+  var sum = d3.sum(data, function(d){return d[1]})
+ graph.selectAll(".bar-indicators text")
+    .data(data)
+    .enter()
+    .append("text")
+    .classed("bar-indicators", true)
+    .attr("x", function(d) { return margin.left+xScale(d[1]) + 5 })
+    .attr("y", function(d) { return yScale(d[0])+yScale.bandwidth()/2})
+    .text(function(d) {return `${Math.round(d[1]/sum*1000)/10}% ` })
+
 
   var xAxis = d3.axisTop().scale(xScale);
   var yAxis = d3.axisLeft().scale(yScale);
