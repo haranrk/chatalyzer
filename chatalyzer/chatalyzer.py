@@ -126,8 +126,9 @@ def show_analysis(analysis_id):
     common_words = json.dumps(analysis.get_common_words(df).values.tolist())
     common_emojis = json.dumps(analysis.get_common_emojis(df).values.tolist())
 
-    authorwise_daywise_message_count = analysis.get_busy_x_authorwise(df, analysis.KEY_DATE, -1, True)
-    # import ipdb; ipdb.set_trace()
+    authorwise_daywise_message_count = analysis.get_busy_x_authorwise(df, analysis.KEY_DATE, -1,return_json=True)
+    busiest_time = analysis.get_busy_x_authorwise(df, analysis.KEY_HOUR, -1, return_json=False, add_cumulative=True)
+    import ipdb; ipdb.set_trace()
     return render_template('chat_analysis.html',
                            authorwise_daywise_message_count=authorwise_daywise_message_count,
                            num_msgs=df.shape[0],

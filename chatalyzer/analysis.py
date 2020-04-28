@@ -233,7 +233,7 @@ def get_busy_x(df, x, n_x=10, sort=False, drop_none=True):
     else:
         return busy_x_df.head(n_x)
 
-def get_busy_x_authorwise(df,x,n_x, return_json, sort=False, drop_none=True ):
+def get_busy_x_authorwise(df,x,n_x, return_json, add_cumulative=False, sort=False, drop_none=True ):
     """
     Authorwise, returns data containing the values of x and the number of messages corresponding to the x
     Here, x is 'Date', 'Time', 'Year', 'Month'...
@@ -241,6 +241,7 @@ def get_busy_x_authorwise(df,x,n_x, return_json, sort=False, drop_none=True ):
             df (Pandas.DataFrame) - DataFrame of chats
             x (str) - 'Date', 'Time', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'
             n_x (int, default 10) - Number of instances required required (-1 to get all rows)
+            add_cumulative (bool) - If True, adds another author row "Cumulative" that has the totals of all authors
             return_json - If True, returns in json instead of a dict of DataFrame
             sort (bool) - If True, sorts by x. Else, sort by date.
             drop_none (bool) - If True, drops the 'None' author if not already removed.
@@ -260,6 +261,9 @@ def get_busy_x_authorwise(df,x,n_x, return_json, sort=False, drop_none=True ):
     for participant in participant_list:
         participant_df = df2[df2[KEY_AUTHOR]==participant]
         data_list.append([participant, get_busy_x(participant_df,x,n_x=n_x, sort=sort)])
+
+    if add_cumulative==True:
+        data_list.append(["Cumulative", get_busy_x(df2,x=x, n_x=n_x, sort=sort)])
 
     if return_json==True:
         for i in range(len(data_list)):
