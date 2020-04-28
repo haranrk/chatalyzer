@@ -64,7 +64,7 @@
       <h2 class="display-5">Common Emojis</h2>
       <!-- <p class="lead">And an even wittier subheading.</p> -->
     </div>
-    <div id="common_emojis" class="bg-light" style="width: 80%; height: 300px;"></div>
+    <div id="most_used_emojis" class="bg-light" style="width: 80%; height: 300px;"></div>
   </div>
 </div>
 
@@ -81,7 +81,7 @@
       <h2 class="display-5">Common Words</h2>
       <!-- <p class="lead">And an even wittier subheading.</p> -->
     </div>
-    <div id="common_words" class="bg-light" style="width: 80%; height: 300px;"></div>
+    <div id="most_used_words" class="bg-light" style="width: 80%; height: 300px;"></div>
   </div>
 </div>
 </body>
@@ -167,8 +167,8 @@ barGraph("#letter_count", letter_count);
 var top_media_senders = {{ top_media_senders|safe }};
 barGraph("#top_media_senders", top_media_senders)
 
-var common_emojis = {{ common_emojis|safe }}
-barGraph("#common_emojis", common_emojis)
+var most_used_emojis = {{ most_used_emojis|safe }}
+barGraph("#most_used_emojis", most_used_emojis)
 </script>
 <script>
 // Daywise messages graph
@@ -486,7 +486,7 @@ function wordCloud(svgId, data){
   }
 }
 
-var common_words = {{ common_words|safe }};
-wordCloud("#common_words", common_words);
+var most_used_words = {{ most_used_words|safe }};
+wordCloud("#most_used_words", most_used_words);
 </script>
 </html>
