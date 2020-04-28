@@ -123,7 +123,7 @@ def show_analysis(analysis_id):
     busiest_days = analysis.get_busy_x(df, analysis.KEY_DATE, -1)
     daywise_message_count = busiest_days.sort_values("Busy X")
     daywise_message_count = json.dumps(daywise_message_count.values.tolist(), cls=analysis.DateTimeEncoder)
-    common_words = json.dumps(analysis.get_common_words(df).values.tolist())
+    common_words = json.dumps(analysis.get_common_words(df, 40).values.tolist())
     common_emojis = json.dumps(analysis.get_common_emojis(df).values.tolist())
 
     authorwise_daywise_message_count = analysis.get_busy_x_authorwise(df, analysis.KEY_DATE, -1,return_json=True)

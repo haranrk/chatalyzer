@@ -2,6 +2,7 @@ import pandas as pd
 import datetime
 import json
 import emoji
+import string
 from collections import Counter
 
 KEY_DATE = 'Date'
@@ -289,23 +290,29 @@ def get_common_words(df, n_words=10, other=False):
     """
     df = drop_media_messages(df)
 
+    unwanted_words = ['to', 'from', 'of', 'the']
+    unwanted_words.extend(list(string.ascii_letters))
+    unwanted_words.extend(list(string.digits))
+
     word_list = []
     for message in df[KEY_MESSAGE]:
-        word_list.extend(message.split())
+        message = message.translate(message.maketrans('', '', string.punctuation))  # Removing punctuation
+        word_list.extend(word for word in message.split()
+                         if word not in emoji.UNICODE_EMOJI and word not in unwanted_words)
 
     counter = Counter(word_list)
 
     if n_words == -1:
-        common_words = list(counter.items())
+        common_words_and_count = list(counter.items())
     else:
-        common_words = counter.most_common(n_words)
+        common_words_and_count = counter.most_common(n_words)
 
     if other:
         total_words = len(word_list)
-        total_common_words = sum(map(lambda x: x[1], common_words))
-        common_words.append(('other', total_words - total_common_words))
+        total_common_words = sum(map(lambda x: x[1], common_words_and_count))
+        common_words_and_count.append(('other', total_words - total_common_words))
 
-    common_words_df = pd.DataFrame(common_words, columns=[KEY_WORD, KEY_WORD_COUNT])
+    common_words_df = pd.DataFrame(common_words_and_count, columns=[KEY_WORD, KEY_WORD_COUNT])
     return common_words_df
 
 
@@ -328,18 +335,16 @@ def get_common_emojis(df, n_emojis=10, other=False):
     counter = Counter(emoji_list)
 
     if n_emojis == -1:
-        common_emojis = list(counter.items())
+        common_emojis_and_count= list(counter.items())
     else:
-        common_emojis = counter.most_common(n_emojis)
-
-    common_emojis = counter.most_common(n_emojis)
+        common_emojis_and_count = counter.most_common(n_emojis)
 
     if other:
         total_emojis = len(emoji_list)
-        total_common_emojis = sum(map(lambda x: x[1], common_emojis))
-        common_emojis.append(('other', total_emojis - total_common_emojis))
+        total_common_emojis = sum(map(lambda x: x[1], common_emojis_and_count))
+        common_emojis_and_count.append(('other', total_emojis - total_common_emojis))
 
-    common_emojis_df = pd.DataFrame(common_emojis, columns=[KEY_EMOJI, KEY_EMOJI_COUNT])
+    common_emojis_df = pd.DataFrame(common_emojis_and_count, columns=[KEY_EMOJI, KEY_EMOJI_COUNT])
     return common_emojis_df
 
 
