@@ -328,8 +328,6 @@ def get_common_emojis(df, n_emojis=10, other=False):
     else:
         common_emojis = counter.most_common(n_emojis)
 
-    common_emojis = counter.most_common(n_emojis)
-
     if other:
         total_emojis = len(emoji_list)
         total_common_emojis = sum(map(lambda x: x[1], common_emojis))
