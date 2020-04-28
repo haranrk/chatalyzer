@@ -76,12 +76,12 @@
     </div>
     <div id="authorwise_daywise_messages" class="bg-light " style="width: 80%; height: 300px;"></div>
   </div>
-  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+  <div class="bg-dark mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
     <div class="my-3 py-3">
-      <h2 class="display-5">Another headline</h2>
-      <p class="lead">And an even wittier subheading.</p>
+      <h2 class="display-5">Common Words</h2>
+      <!-- <p class="lead">And an even wittier subheading.</p> -->
     </div>
-    <div class="bg-white shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
+    <div id="common_words" class="bg-light" style="width: 80%; height: 300px;"></div>
   </div>
 </div>
 </body>
@@ -89,6 +89,7 @@
 <script src={{ url_for('static', filename='js/jquery-3.4.1.min.js') }} ></script>
 <script src={{ url_for('static', filename='js/bootstrap.bundle.min.js') }} ></script>
 <script src={{ url_for('static', filename='js/d3.min.js') }} ></script>
+<script src={{ url_for('static', filename='js/d3.layout.cloud.js') }} ></script>
 <!--<script src={{ url_for('static', filename='js/analysis.js') }} ></script>-->
 <script>
 function barGraph(svgId, data){
@@ -435,6 +436,57 @@ legend.selectAll("text")
     .style("alignment-baseline", "top")
 
 </script>
+<script>
+function wordCloud(svgId, data){
+  var margin = {"left": 40, "right": 60, "top":20, "bottom":20};
+  var graphWidth = 600;
+  var graphHeight = 360;
+  var h = margin.top + graphHeight + margin.bottom;
+  var w = margin.left + graphWidth+ margin.right;
+
+  data_obj = Object.assign(...data.map(([k, v]) => ({ [k]: v })));
+
+  var fill = d3.scaleOrdinal(d3.schemeTableau10)
+  var word_entries = d3.entries(data_obj);
+
+  var xScale = d3.scaleLinear()
+      .domain([0, d3.max(word_entries, d => d.value)])
+      .range([10, 100]);
+
+  d3.layout.cloud().size([w, h])
+      .timeInterval(20)
+      .words(word_entries)
+      .fontSize(function(d) { return xScale(+d.value); })
+      .text(function(d) { return d.key; })
+      .rotate(function() { return ~~(Math.random() * 2) * 90; })
+      .font("Impact")
+      .on("end", draw)
+      .start();
+
+  function draw(words_entries) {
+    var svg = d3.select(svgId)
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h);
+    
+    var graph = svg.append("g").attr("transform", "translate(" + [w >> 1, h >> 1] + ")")
+        
+    graph.selectAll("text")
+        .data(words_entries)
+        .enter()
+        .append("text")
+        .style("font-size", function(d) { return xScale(d.value) + "px"; })
+        .style("font-family", "Impact")
+        .style("fill", function(d, i) { return fill(i); })
+        .attr("text-anchor", "middle")
+        .attr("transform", function(d) {
+          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        })
+        .text(function(d) { return d.key; });
+  }
+}
+
+var common_words = {{ common_words|safe }};
+wordCloud("#common_words", common_words);
+</script>
 </html>
-
-
