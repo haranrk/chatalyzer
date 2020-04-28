@@ -276,7 +276,7 @@ def get_busy_x_authorwise(df,x,n_x, return_json, add_cumulative=False, sort=Fals
         return data_list
 
 
-def get_common_words(df, n_words=10, other=False):
+def get_most_used_words(df, n_words=10, other=False):
     """
     Returns a Pandas DataFrame containing the common words and their count sorted in descending order
 
@@ -303,20 +303,20 @@ def get_common_words(df, n_words=10, other=False):
     counter = Counter(word_list)
 
     if n_words == -1:
-        common_words_and_count = list(counter.items())
+        most_used_words_and_count = list(counter.items())
     else:
-        common_words_and_count = counter.most_common(n_words)
+        most_used_words_and_count = counter.most_common(n_words)
 
     if other:
         total_words = len(word_list)
-        total_common_words = sum(map(lambda x: x[1], common_words_and_count))
-        common_words_and_count.append(('other', total_words - total_common_words))
+        total_used_words = sum(map(lambda x: x[1], most_used_words_and_count))
+        most_used_words_and_count.append(('other', total_words - total_used_words))
 
-    common_words_df = pd.DataFrame(common_words_and_count, columns=[KEY_WORD, KEY_WORD_COUNT])
+    common_words_df = pd.DataFrame(most_used_words_and_count, columns=[KEY_WORD, KEY_WORD_COUNT])
     return common_words_df
 
 
-def get_common_emojis(df, n_emojis=10, other=False):
+def get_most_used_emojis(df, n_emojis=10, other=False):
     """
     Returns a Pandas DataFrame containing the common emojis and their count sorted in descending order
 
@@ -335,17 +335,17 @@ def get_common_emojis(df, n_emojis=10, other=False):
     counter = Counter(emoji_list)
 
     if n_emojis == -1:
-        common_emojis_and_count= list(counter.items())
+        most_used_emojis_and_count= list(counter.items())
     else:
-        common_emojis_and_count = counter.most_common(n_emojis)
+        most_used_emojis_and_count = counter.most_common(n_emojis)
 
     if other:
         total_emojis = len(emoji_list)
-        total_common_emojis = sum(map(lambda x: x[1], common_emojis_and_count))
-        common_emojis_and_count.append(('other', total_emojis - total_common_emojis))
+        total_used_emojis = sum(map(lambda x: x[1], most_used_emojis_and_count))
+        most_used_emojis_and_count.append(('other', total_emojis - total_used_emojis))
 
-    common_emojis_df = pd.DataFrame(common_emojis_and_count, columns=[KEY_EMOJI, KEY_EMOJI_COUNT])
-    return common_emojis_df
+    most_used_emojis_df = pd.DataFrame(most_used_emojis_and_count, columns=[KEY_EMOJI, KEY_EMOJI_COUNT])
+    return most_used_emojis_df
 
 
 def add_date_time(df):
@@ -416,8 +416,4 @@ def get_group_timeline(df):
     """
     Returns data containing when participants joined and left the group
     """
-    pass
-
-
-def get_most_used_words(df):
     pass
