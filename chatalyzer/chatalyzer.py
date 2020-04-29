@@ -113,7 +113,7 @@ def allowed_file(filename):
 def show_analysis(analysis_id):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], analysis_id) + '.txt'
     if os.path.isfile(file_path):
-        import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
         df = get_chats(file_path)
         df = analysis.add_date_time(df)
         df = analysis.add_letter_count(df)

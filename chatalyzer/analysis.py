@@ -3,6 +3,7 @@ import datetime
 import json
 import emoji
 import string
+import os
 from collections import Counter
 
 KEY_DATE = 'Date'
@@ -300,8 +301,11 @@ def get_most_used_words(df, n_words=10, other=False):
     """
     df = drop_media_messages(df)
 
-    unwanted_words = ['to', 'from', 'of', 'the']
-    unwanted_words.extend(list(string.ascii_letters))
+    trivial_words_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "static","misc","trivial_words.txt") #File containing the words comma-separated
+    with open(trivial_words_path,'r') as f:
+        unwanted_words = [x.strip() for x in f.readlines()]
+    print(unwanted_words)
+    # unwanted_words.extend(list(string.ascii_letters))
     unwanted_words.extend(list(string.digits))
 
     word_list = []
