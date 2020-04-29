@@ -24,11 +24,12 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # chat parsing functions taken from https://towardsdatascience.com/build-your-own-whatsapp-chat-analyzer-9590acca9014
 def starts_with_date_time(s):
     patterns = [
-        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) -',
-        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) am -',
-        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9]):([0-9][0-9]) am -',
-        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) pm -',
-        '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9]):([0-9][0-9]) pm -'
+        '([0-9]|[0-3][0-9])\/([0-9]|[0-3][0-9])\/(\d{2}|\d{4}), ([0-2]\d:[0-6]\d|((\d|[0-1][0-9]):[0-6][0-9] ((a|A|p|P)(m|M)))) -'
+        # '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) -',
+        # '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) (a|p|A|P)(m|M) -',
+        # '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9]):([0-9][0-9]) (a|p|A|P)(m|M) -',
+        # '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9][0-9]):([0-9][0-9]) pm -',
+        # '([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)(\d{2}|\d{4}), ([0-9]):([0-9][0-9]) pm -'
     ]
 
     pattern = '^' + '|'.join(patterns)
@@ -112,6 +113,7 @@ def allowed_file(filename):
 def show_analysis(analysis_id):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], analysis_id) + '.txt'
     if os.path.isfile(file_path):
+        import ipdb; ipdb.set_trace()
         df = get_chats(file_path)
         df = analysis.add_date_time(df)
         df = analysis.add_letter_count(df)
@@ -129,7 +131,6 @@ def show_analysis(analysis_id):
 
         authorwise_daywise_message_count = analysis.get_busy_x_authorwise(df, analysis.KEY_DATE, -1,return_json=True)
         authorwise_busiest_time = analysis.get_busy_x_authorwise(df, analysis.KEY_HOUR, -1, return_json=True, add_cumulative=False)
-        # import ipdb; ipdb.set_trace()
         return render_template('chat_analysis.html',
                                 authorwise_busiest_time=authorwise_busiest_time,
                                authorwise_daywise_message_count=authorwise_daywise_message_count,

@@ -113,7 +113,17 @@ def get_date_time(df):
             Pandas.DatatimeIndex
     """
     df2 = am_pm_to_24hr(df)
-    date_time = pd.to_datetime(df2[KEY_DATE] + ':' + df2[KEY_TIME], format='%d/%m/%y:%H:%M:%S')
+    potential_formats = [
+            '%d/%m/%y:%H:%M:%S',
+            '%m/%d/%y:%H:%M:%S',
+            '%y/%m/%d:%H:%M:%S'
+            ]
+    for potential_format in potential_formats:
+        try:
+            date_time = pd.to_datetime(df2[KEY_DATE] + ':' + df2[KEY_TIME], format=potential_format)
+        except ValueError:
+            continue
+
     return date_time
 
 
