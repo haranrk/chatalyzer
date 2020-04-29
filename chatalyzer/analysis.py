@@ -304,6 +304,7 @@ def get_most_used_words(df, n_words=10, other=False):
     trivial_words_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "static","misc","trivial_words.txt") #File containing the words comma-separated
     with open(trivial_words_path,'r') as f:
         unwanted_words = [x.strip() for x in f.readlines()]
+    unwanted_words.extend([x.capitalize() for x in unwanted_words])
     print(unwanted_words)
     # unwanted_words.extend(list(string.ascii_letters))
     unwanted_words.extend(list(string.digits))

@@ -1,5 +1,7 @@
+and
+or
+the
 a
-A
 from
 to
 in
