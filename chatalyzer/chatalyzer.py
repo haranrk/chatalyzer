@@ -111,35 +111,38 @@ def allowed_file(filename):
 @app.route('/analysis/<analysis_id>')
 def show_analysis(analysis_id):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], analysis_id) + '.txt'
-    df = get_chats(file_path)
-    df = analysis.add_date_time(df)
-    df = analysis.add_letter_count(df)
-    df = analysis.add_word_count(df)
+    if os.path.isfile(file_path):
+        df = get_chats(file_path)
+        df = analysis.add_date_time(df)
+        df = analysis.add_letter_count(df)
+        df = analysis.add_word_count(df)
 
-    top_message_senders = json.dumps(analysis.get_top_message_senders(df, -1).values.tolist())
-    top_media_senders = json.dumps(analysis.get_top_media_senders(df, -1).values.tolist())
-    word_count = json.dumps(analysis.get_top_x_count(df, analysis.KEY_WORD_COUNT, -1).values.tolist())
-    letter_count = json.dumps(analysis.get_top_x_count(df, analysis.KEY_LETTER_COUNT, -1).values.tolist())
-    busiest_days = analysis.get_busy_x(df, analysis.KEY_DATE, -1)
-    daywise_message_count = busiest_days.sort_values("Busy X")
-    daywise_message_count = json.dumps(daywise_message_count.values.tolist(), cls=analysis.DateTimeEncoder)
-    most_used_words = json.dumps(analysis.get_most_used_words(df, 40).values.tolist())
-    most_used_emojis = json.dumps(analysis.get_most_used_emojis(df).values.tolist())
+        top_message_senders = json.dumps(analysis.get_top_message_senders(df, -1).values.tolist())
+        top_media_senders = json.dumps(analysis.get_top_media_senders(df, -1).values.tolist())
+        word_count = json.dumps(analysis.get_top_x_count(df, analysis.KEY_WORD_COUNT, -1).values.tolist())
+        letter_count = json.dumps(analysis.get_top_x_count(df, analysis.KEY_LETTER_COUNT, -1).values.tolist())
+        busiest_days = analysis.get_busy_x(df, analysis.KEY_DATE, -1)
+        daywise_message_count = busiest_days.sort_values("Busy X")
+        daywise_message_count = json.dumps(daywise_message_count.values.tolist(), cls=analysis.DateTimeEncoder)
+        most_used_words = json.dumps(analysis.get_most_used_words(df, 40).values.tolist())
+        most_used_emojis = json.dumps(analysis.get_most_used_emojis(df).values.tolist())
 
-    authorwise_daywise_message_count = analysis.get_busy_x_authorwise(df, analysis.KEY_DATE, -1,return_json=True)
-    authorwise_busiest_time = analysis.get_busy_x_authorwise(df, analysis.KEY_HOUR, -1, return_json=True, add_cumulative=False)
-    # import ipdb; ipdb.set_trace()
-    return render_template('chat_analysis.html',
-                            authorwise_busiest_time=authorwise_busiest_time,
-                           authorwise_daywise_message_count=authorwise_daywise_message_count,
-                           num_msgs=df.shape[0],
-                           daywise_message_count=daywise_message_count,
-                           letter_count=letter_count,
-                           word_count=word_count,
-                           top_message_senders=top_message_senders,
-                           top_media_senders=top_media_senders,
-                           most_used_words=most_used_words,
-                           most_used_emojis=most_used_emojis)
+        authorwise_daywise_message_count = analysis.get_busy_x_authorwise(df, analysis.KEY_DATE, -1,return_json=True)
+        authorwise_busiest_time = analysis.get_busy_x_authorwise(df, analysis.KEY_HOUR, -1, return_json=True, add_cumulative=False)
+        # import ipdb; ipdb.set_trace()
+        return render_template('chat_analysis.html',
+                                authorwise_busiest_time=authorwise_busiest_time,
+                               authorwise_daywise_message_count=authorwise_daywise_message_count,
+                               num_msgs=df.shape[0],
+                               daywise_message_count=daywise_message_count,
+                               letter_count=letter_count,
+                               word_count=word_count,
+                               top_message_senders=top_message_senders,
+                               top_media_senders=top_media_senders,
+                               most_used_words=most_used_words,
+                               most_used_emojis=most_used_emojis)
+    else:
+        return render_template('chat_unavailable.html')
 
 
 @app.route('/uploader', methods=['GET', 'POST'])
