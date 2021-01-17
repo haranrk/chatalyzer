@@ -114,10 +114,11 @@ def get_date_time(df):
             Pandas.DatatimeIndex
     """
     df2 = am_pm_to_24hr(df)
+
     potential_formats = [
             '%d/%m/%y:%H:%M:%S',
             '%m/%d/%y:%H:%M:%S',
-            '%y/%m/%d:%H:%M:%S'
+            '%Y/%m/%d:%H:%M:%S'
             ]
     for potential_format in potential_formats:
         try:
