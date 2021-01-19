@@ -92,60 +92,162 @@
 <script src={{ url_for('static', filename='js/d3.layout.cloud.js') }} ></script>
 <!--<script src={{ url_for('static', filename='js/analysis.js') }} ></script>-->
 <script>
-function barGraph(svgId, data){
-  var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
-  var graphHeight = data.length*15;
-  var graphWidth = 600;
-  var h = margin.top+graphHeight+margin.bottom;
-  var w = margin.left + graphWidth+ margin.right;
+  function barGraph(svgId, data){
+    var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
+    var graphHeight = data.length*15;
+    var graphWidth = 600;
+    var h = margin.top+graphHeight+margin.bottom;
+    var w = margin.left + graphWidth+ margin.right;
 
-  var svg = d3.select(svgId)
-      .append("svg")
-      .attr("width", w)
-      .attr("height", h);
+    var svg = d3.select(svgId)
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h);
 
-  var yScale = d3.scaleBand()
-      .domain(data.map(x => x[0]))
-      .range([margin.top, margin.top+graphHeight]);
+    var yScale = d3.scaleBand()
+        .domain(data.map(x => x[0]))
+        .range([margin.top, margin.top+graphHeight]);
 
-  var xScale = d3.scaleLinear()
-      .domain([0, d3.max(data, function(d) { return d[1] })]).nice()
-      .range([0, graphWidth]);
+    var xScale = d3.scaleLinear()
+        .domain([0, d3.max(data, function(d) { return d[1] })]).nice()
+        .range([0, graphWidth]);
 
-  var colorScale = d3.scaleLinear()
-      .domain([0, d3.max(data, function(d) { return d[1] })])
-      .range([0, 1]);
+    var colorScale = d3.scaleLinear()
+        .domain([0, d3.max(data, function(d) { return d[1] })])
+        .range([0, 1]);
 
-  var graph = svg.append("g").attr("class","bar-graph");
+    var graph = svg.append("g").attr("class","bar-graph");
 
-  graph.selectAll("rect")
+    graph.selectAll("rect")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("width", function(d) { return xScale(d[1]) })
+        .attr("height", function(d) { return yScale.bandwidth() })
+        .attr("x", function(d) { return margin.left+xScale(0) })
+        .attr("y", function(d) { return yScale(d[0])})
+        .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))});
+
+    var sum = d3.sum(data, function(d){return d[1]})
+  graph.selectAll(".bar-indicators text")
       .data(data)
       .enter()
-      .append("rect")
-      .attr("width", function(d) { return xScale(d[1]) })
-      .attr("height", function(d) { return yScale.bandwidth() })
-      .attr("x", function(d) { return margin.left+xScale(0) })
-      .attr("y", function(d) { return yScale(d[0])})
-      .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))});
-
-  var sum = d3.sum(data, function(d){return d[1]})
- graph.selectAll(".bar-indicators text")
-    .data(data)
-    .enter()
-    .append("text")
-    .classed("bar-indicators", true)
-    .attr("x", function(d) { return margin.left+xScale(d[1]) + 5 })
-    .attr("y", function(d) { return yScale(d[0])+yScale.bandwidth()/2})
-    .text(function(d) {return `${Math.round(d[1]/sum*1000)/10}% ` })
+      .append("text")
+      .classed("bar-indicators", true)
+      .attr("x", function(d) { return margin.left+xScale(d[1]) + 5 })
+      .attr("y", function(d) { return yScale(d[0])+yScale.bandwidth()/2})
+      .text(function(d) {return `${Math.round(d[1]/sum*1000)/10}% ` })
 
 
-  var xAxis = d3.axisTop().scale(xScale);
-  var yAxis = d3.axisLeft().scale(yScale);
+    var xAxis = d3.axisTop().scale(xScale);
+    var yAxis = d3.axisLeft().scale(yScale);
+
+    svg.append("g")
+        .attr("id", "x-axis")
+        .classed("axis", true)
+        .attr("transform", "translate("+margin.left+","+margin.top+")")
+        .call(xAxis);
+
+    svg.append("g")
+        .attr("id", "y-axis")
+        .classed("axis", true)
+        .attr("transform", "translate("+margin.left+","+0+")")
+        .call(yAxis);
+  }
+
+  var top_message_senders = {{ top_message_senders|safe }};
+  barGraph("#top_message_senders", top_message_senders);
+
+  var word_count = {{ word_count|safe }};
+  barGraph("#word_count", word_count);
+
+  var letter_count = {{ letter_count|safe }};
+  barGraph("#letter_count", letter_count);
+
+  var top_media_senders = {{ top_media_senders|safe }};
+  barGraph("#top_media_senders", top_media_senders)
+
+  var most_used_emojis = {{ most_used_emojis|safe }}
+  barGraph("#most_used_emojis", most_used_emojis)
+</script>
+<script>
+// Daywise messages graph
+
+  function zoomableBarGraph(svgId, data) {
+    var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
+    var graphWidth = 600;
+    var graphHeight = 220;
+    var h = margin.top + graphHeight + margin.bottom;
+    var w = margin.left + graphWidth+ margin.right;
+    var buttonsPaddingRight = 350;
+    var buttonsPaddingInner = 0.1;
+
+      var svg = d3.select(`#${svgId}`)
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h);
+
+      clipId = `${svgId}_graph_clipper`
+
+      svg.append("clipPath")
+            .attr("id", clipId)
+          .append("rect")
+            .attr("x", margin.left)
+            .attr("y", 0)
+            .attr("width", graphWidth)
+            .attr("height", h);
+      
+      function parseDate(x){
+          d = new Date(x);
+          d.setDate(d.getDate()-1);
+          d.setHours(12);
+          d.setMinutes(0);
+          return d;
+      }
+    var xScale = d3.scaleTime()
+        .domain([data[0], data[data.length -1]].map(x => parseDate(x[0])))
+        .range([margin.left, margin.left+ graphWidth]);
+
+    var yScale = d3.scaleLinear()
+        .domain([0, d3.max(data, function(d) { return d[1] })])
+        .range([margin.top+graphHeight,margin.top]);
+
+    var colorScale = d3.scaleLinear()
+        .domain([0, d3.max(data, function(d) { return d[1] })])
+        .range([0, 1]);
+
+      var graph = svg.append("g")
+          .attr("clip-path", `url(#${clipId})` )
+
+  function getBarWidth(scale){
+      var a = new Date;
+      var b = new Date;
+      a.setHours(0);
+      b.setHours(24);
+      var barWidth = (scale(parseDate(b)) - scale(parseDate(a)));
+      return barWidth;
+  }
+  var barWidth = getBarWidth(xScale);
+
+  graph.selectAll("rect")
+          .data(data)
+          .enter()
+          .append("rect")
+          .attr("width", function(d) { return barWidth })
+          .attr("height", function(d) { return yScale(0)-yScale(d[1])})
+          .attr("x", function(d) { return xScale(parseDate(d[0])) })
+          .attr("y", function(d) { return yScale(d[1])})
+          .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))})
+
+  var xAxis = d3.axisBottom()
+                  .scale(xScale);
+  var yAxis = d3.axisLeft()
+                  .scale(yScale);
 
   svg.append("g")
       .attr("id", "x-axis")
       .classed("axis", true)
-      .attr("transform", "translate("+margin.left+","+margin.top+")")
+      .attr("transform", "translate("+0+","+ (margin.top+graphHeight) + ")")
       .call(xAxis);
 
   svg.append("g")
@@ -153,120 +255,136 @@ function barGraph(svgId, data){
       .classed("axis", true)
       .attr("transform", "translate("+margin.left+","+0+")")
       .call(yAxis);
-}
 
-var top_message_senders = {{ top_message_senders|safe }};
-barGraph("#top_message_senders", top_message_senders);
+  function zoomed() {
+      var transform = d3.event.transform;
+      xScaleNew = transform.rescaleX(xScale);
+      var barWidth = getBarWidth(xScaleNew);
 
-var word_count = {{ word_count|safe }};
-barGraph("#word_count", word_count);
+      graph.selectAll("rect")
+          .attr("width", function(d) { return barWidth; })
+          .attr("x", function(d) { return xScaleNew(parseDate(d[0])) });
 
-var letter_count = {{ letter_count|safe }};
-barGraph("#letter_count", letter_count);
+      xAxis.scale(xScaleNew);
+      d3.select("#daywise_messages #x-axis").call(xAxis);
+    }
 
-var top_media_senders = {{ top_media_senders|safe }};
-barGraph("#top_media_senders", top_media_senders)
+    const extent = [[margin.left, margin.top], [w- margin.right, h- margin.top]];
 
-var most_used_emojis = {{ most_used_emojis|safe }}
-barGraph("#most_used_emojis", most_used_emojis)
-</script>
+    var zoom = d3.zoom()
+        .scaleExtent([1, Infinity])
+        .translateExtent(extent)
+        .extent(extent)
+        .on('zoom', zoomed);
+    
+    svg.call(zoom);
+                        
+    var avg = Math.round(d3.sum(data, function(d){return d[1];})/data.length);
+
+    var avgData = [
+        xScale(parseDate(data[0][0]))-margin.left,
+        xScale(parseDate(data[data.length-1][0])),
+        ];
+
+    var avgLine = d3.line()
+        .x(function(d,i){ return d;})
+        .y(yScale(avg));
+
+    svg.append("path")
+        .datum(avgData)
+        .attr("class", "mean")
+        .attr("d", avgLine);
+
+    svg.append("text")
+        .attr("transform", "translate(" + (avgData[0]) + "," + yScale(avg) + ")")
+        .attr("dy", "1em")
+        .classed("avg-text", true)
+        .attr("text-anchor", "beg")
+        .html("Average = " + avg);
+  }
+
+  var daywise_message_count = {{ daywise_message_count|safe }};
+  zoomableBarGraph("daywise_messages", daywise_message_count);
+  </script>
 <script>
-// Daywise messages graph
-
-function zoomableBarGraph(svgId, data) {
+// Authorwise Daywise messages
   var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
   var graphWidth = 600;
   var graphHeight = 220;
   var h = margin.top + graphHeight + margin.bottom;
   var w = margin.left + graphWidth+ margin.right;
-  var buttonsPaddingRight = 350;
-  var buttonsPaddingInner = 0.1;
 
-    var svg = d3.select(`#${svgId}`)
-      .append("svg")
-      .attr("width", w)
-      .attr("height", h);
+  divId = "authorwise_daywise_messages"
+  var svg = d3.select(`#${divId}`)
+              .append("svg")
+              .attr("width", w)
+              .attr("height", h);
 
-    clipId = `${svgId}_graph_clipper`
+  clipId = `${divId}_graph_clipper`
 
-    svg.append("clipPath")
-          .attr("id", clipId)
-        .append("rect")
-          .attr("x", margin.left)
-          .attr("y", 0)
-          .attr("width", graphWidth)
-          .attr("height", h);
-    
-    function parseDate(x){
-        d = new Date(x);
-        d.setDate(d.getDate()-1);
-        d.setHours(12);
-        d.setMinutes(0);
-        return d;
-    }
-  var xScale = d3.scaleTime()
-      .domain([data[0], data[data.length -1]].map(x => parseDate(x[0])))
-      .range([margin.left, margin.left+ graphWidth]);
+  svg.append("defs").append("svg:clipPath")
+        .attr("id", clipId)
+      .append("svg:rect")
+        .attr("x", margin.left)
+        .attr("y", 0)
+        .attr("width", graphWidth)
+        .attr("height", h);
 
-  var yScale = d3.scaleLinear()
-      .domain([0, d3.max(data, function(d) { return d[1] })])
-      .range([margin.top+graphHeight,margin.top]);
+  data = {{ authorwise_daywise_message_count |safe }}
+  function parseDate(x){
+      d = new Date(x);
+      d.setHours(0);
+      d.setMinutes(0);
+      return d;
+  }
+  var y = d3.scaleLinear()
+      .domain([0, 
+          d3.max(data, function(d) {return d3.max(d[1], function(x) {return x[1]})})
+      ])
+      .range([ margin.top+graphHeight,margin.top])
 
-  var colorScale = d3.scaleLinear()
-      .domain([0, d3.max(data, function(d) { return d[1] })])
-      .range([0, 1]);
 
-    var graph = svg.append("g")
-        .attr("clip-path", `url(#${clipId})` )
+  var x = d3.scaleTime()
+      .domain([
+          d3.min(data, function (d){
+              return d3.min(d[1], function(d){ return parseDate(d[0])})
+          }),
+          d3.max(data, function (d){
+              return d3.max(d[1], function(d){ return parseDate(d[0])})
+          })
+      ])
+      .range([margin.left, margin.left+graphWidth]);
 
-function getBarWidth(scale){
-    var a = new Date;
-    var b = new Date;
-    a.setHours(0);
-    b.setHours(24);
-    var barWidth = (scale(parseDate(b)) - scale(parseDate(a)));
-    return barWidth;
-}
-var barWidth = getBarWidth(xScale);
+  svg.append("g")
+      .attr("id", "x-axis")
+      .attr("transform", "translate("+0+","+(margin.top+graphHeight)+")")
+      .call(d3.axisBottom(x))
 
-graph.selectAll("rect")
-        .data(data)
-        .enter()
-        .append("rect")
-        .attr("width", function(d) { return barWidth })
-        .attr("height", function(d) { return yScale(0)-yScale(d[1])})
-        .attr("x", function(d) { return xScale(parseDate(d[0])) })
-        .attr("y", function(d) { return yScale(d[1])})
-        .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))})
+  svg.append("g")
+      .attr("id", "y-axis")
+      .attr("transform", "translate("+margin.left+","+0+")")
+      .call(d3.axisLeft(y))
 
-var xAxis = d3.axisBottom()
-                .scale(xScale);
-var yAxis = d3.axisLeft()
-                .scale(yScale);
+  var keys = data.map(d => d[0]);
 
-svg.append("g")
-    .attr("id", "x-axis")
-    .classed("axis", true)
-    .attr("transform", "translate("+0+","+ (margin.top+graphHeight) + ")")
-    .call(xAxis);
+  var color = d3.scaleOrdinal()
+      .domain(keys)
+      .range(d3.schemeTableau10)
 
-svg.append("g")
-    .attr("id", "y-axis")
-    .classed("axis", true)
-    .attr("transform", "translate("+margin.left+","+0+")")
-    .call(yAxis);
+  var graph = svg.append("g")
+      .classed("line-graph", true)
+      .attr("clip-path", `url(#${clipId})`)
 
-function zoomed() {
-    var transform = d3.event.transform;
-    xScaleNew = transform.rescaleX(xScale);
-    var barWidth = getBarWidth(xScaleNew);
-
-    graph.selectAll("rect")
-        .attr("width", function(d) { return barWidth; })
-        .attr("x", function(d) { return xScaleNew(parseDate(d[0])) });
-
-    xAxis.scale(xScaleNew);
-    d3.select("#daywise_messages #x-axis").call(xAxis);
+  for (i= 0; i< data.length; i++) { 
+      graph.append("path")
+          .datum(data[i][1])
+          .attr("fill", "none")
+          .attr("stroke", color(data[i][0]))
+          .attr("stroke-width", 1.5)
+          .attr("d", d3.line()
+            .x(function(d) { return x(parseDate(d[0])) })
+            .y(function(d) { return y(d[1]) })
+          )
   }
 
   const extent = [[margin.left, margin.top], [w- margin.right, h- margin.top]];
@@ -275,218 +393,101 @@ function zoomed() {
       .scaleExtent([1, Infinity])
       .translateExtent(extent)
       .extent(extent)
-      .on('zoom', zoomed);
-  
+      .on('zoom', function() {
+
+      var transform = d3.event.transform;
+
+      xNew = transform.rescaleX(x);
+
+      graph.selectAll("path")
+          .attr("d", d3.line()
+            .x(function(d) { return xNew(parseDate(d[0])) })
+            .y(function(d) { return y(d[1]) })
+          )
+
+      d3.select("#authorwise_daywise_messages #x-axis").call(d3.axisBottom(xNew));
+
+      })
+
   svg.call(zoom);
-                      
-  var avg = Math.round(d3.sum(data, function(d){return d[1];})/data.length);
 
-  var avgData = [
-      xScale(parseDate(data[0][0]))-margin.left,
-      xScale(parseDate(data[data.length-1][0])),
-      ];
+  var legend = svg.append("g")
+                  .classed("legend", true)
 
-  var avgLine = d3.line()
-      .x(function(d,i){ return d;})
-      .y(yScale(avg));
+  var offset = 10;
+  legend.selectAll("circle")
+    .data(keys)
+    .enter()
+    .append("circle")
+      .attr("cx", margin.left)
+      .attr("cy", function(d,i){ return margin.top + i*offset}) // 100 is where the first dot appears. 25 is the distance between dots
+      .attr("r", 4)
+      .style("fill", function(d){ return color(d)})
 
-  svg.append("path")
-      .datum(avgData)
-      .attr("class", "mean")
-      .attr("d", avgLine);
-
-  svg.append("text")
-      .attr("transform", "translate(" + (avgData[0]) + "," + yScale(avg) + ")")
-      .attr("dy", "1em")
-      .classed("avg-text", true)
-      .attr("text-anchor", "beg")
-      .html("Average = " + avg);
-}
-
-var daywise_message_count = {{ daywise_message_count|safe }};
-zoomableBarGraph("daywise_messages", daywise_message_count);
-</script>
-<script>
-// Authorwise Daywise messages
-var margin = {"left": 100, "right": 60, "top":30, "bottom":20};
-var graphWidth = 600;
-var graphHeight = 220;
-var h = margin.top + graphHeight + margin.bottom;
-var w = margin.left + graphWidth+ margin.right;
-
-divId = "authorwise_daywise_messages"
-var svg = d3.select(`#${divId}`)
-            .append("svg")
-            .attr("width", w)
-            .attr("height", h);
-
-clipId = `${divId}_graph_clipper`
-
-svg.append("defs").append("svg:clipPath")
-      .attr("id", clipId)
-    .append("svg:rect")
-      .attr("x", margin.left)
-      .attr("y", 0)
-      .attr("width", graphWidth)
-      .attr("height", h);
-
-data = {{ authorwise_daywise_message_count |safe }}
-function parseDate(x){
-    d = new Date(x);
-    d.setHours(0);
-    d.setMinutes(0);
-    return d;
-}
-var y = d3.scaleLinear()
-    .domain([0, 
-        d3.max(data, function(d) {return d3.max(d[1], function(x) {return x[1]})})
-    ])
-    .range([ margin.top+graphHeight,margin.top])
-
-
-var x = d3.scaleTime()
-    .domain([
-         d3.min(data, function (d){
-             return d3.min(d[1], function(d){ return parseDate(d[0])})
-         }),
-         d3.max(data, function (d){
-             return d3.max(d[1], function(d){ return parseDate(d[0])})
-         })
-    ])
-    .range([margin.left, margin.left+graphWidth]);
-
-svg.append("g")
-    .attr("id", "x-axis")
-    .attr("transform", "translate("+0+","+(margin.top+graphHeight)+")")
-    .call(d3.axisBottom(x))
-
-svg.append("g")
-    .attr("id", "y-axis")
-    .attr("transform", "translate("+margin.left+","+0+")")
-    .call(d3.axisLeft(y))
-
-var keys = data.map(d => d[0]);
-
-var color = d3.scaleOrdinal()
-    .domain(keys)
-    .range(d3.schemeTableau10)
-
-var graph = svg.append("g")
-    .classed("line-graph", true)
-    .attr("clip-path", `url(#${clipId})`)
-
-for (i= 0; i< data.length; i++) { 
-    graph.append("path")
-        .datum(data[i][1])
-        .attr("fill", "none")
-        .attr("stroke", color(data[i][0]))
-        .attr("stroke-width", 1.5)
-        .attr("d", d3.line()
-          .x(function(d) { return x(parseDate(d[0])) })
-          .y(function(d) { return y(d[1]) })
-        )
-}
-
-const extent = [[margin.left, margin.top], [w- margin.right, h- margin.top]];
-
-var zoom = d3.zoom()
-    .scaleExtent([1, Infinity])
-    .translateExtent(extent)
-    .extent(extent)
-    .on('zoom', function() {
-
-    var transform = d3.event.transform;
-
-    xNew = transform.rescaleX(x);
-
-    graph.selectAll("path")
-        .attr("d", d3.line()
-          .x(function(d) { return xNew(parseDate(d[0])) })
-          .y(function(d) { return y(d[1]) })
-        )
-
-    d3.select("#authorwise_daywise_messages #x-axis").call(d3.axisBottom(xNew));
-
-    })
-
-svg.call(zoom);
-
-var legend = svg.append("g")
-                .classed("legend", true)
-
-var offset = 10;
-legend.selectAll("circle")
-  .data(keys)
-  .enter()
-  .append("circle")
-    .attr("cx", margin.left)
-    .attr("cy", function(d,i){ return margin.top + i*offset}) // 100 is where the first dot appears. 25 is the distance between dots
-    .attr("r", 4)
-    .style("fill", function(d){ return color(d)})
-
-legend.selectAll("text")
-  .data(keys)
-  .enter()
-  .append("text")
-    .attr("x", margin.left + 20)
-    .attr("y", function(d,i){ return margin.top + 2 + i*offset}) // 100 is where the first dot appears. 25 is the distance between dots
-    .style("fill", function(d){ return color(d)})
-    .text(function(d){ return d})
-    .attr("text-anchor", "left")
-    .style("alignment-baseline", "top")
+  legend.selectAll("text")
+    .data(keys)
+    .enter()
+    .append("text")
+      .attr("x", margin.left + 20)
+      .attr("y", function(d,i){ return margin.top + 2 + i*offset}) // 100 is where the first dot appears. 25 is the distance between dots
+      .style("fill", function(d){ return color(d)})
+      .text(function(d){ return d})
+      .attr("text-anchor", "left")
+      .style("alignment-baseline", "top")
 
 </script>
 <script>
-function wordCloud(svgId, data){
-  var margin = {"left": 40, "right": 60, "top":1, "bottom":20};
-  var graphWidth = 600;
-  var graphHeight = 300;
-  var h = margin.top + graphHeight + margin.bottom;
-  var w = margin.left + graphWidth+ margin.right;
+//Word cloud
+  function wordCloud(svgId, data){
+    var margin = {"left": 40, "right": 60, "top":1, "bottom":20};
+    var graphWidth = 600;
+    var graphHeight = 300;
+    var h = margin.top + graphHeight + margin.bottom;
+    var w = margin.left + graphWidth+ margin.right;
 
-  data_obj = Object.assign(...data.map(([k, v]) => ({ [k]: v })));
+    data_obj = Object.assign(...data.map(([k, v]) => ({ [k]: v })));
 
-  var fill = d3.scaleOrdinal(d3.schemeTableau10)
-  var word_entries = d3.entries(data_obj);
+    var fill = d3.scaleOrdinal(d3.schemeTableau10)
+    var word_entries = d3.entries(data_obj);
 
-  var xScale = d3.scaleLinear()
-      .domain([0, d3.max(word_entries, d => d.value)])
-      .range([10, 100]);
+    var xScale = d3.scaleLinear()
+        .domain([0, d3.max(word_entries, d => d.value)])
+        .range([10, 100]);
 
-  d3.layout.cloud().size([w, h])
-      .timeInterval(20)
-      .words(word_entries)
-      .fontSize(function(d) { return xScale(+d.value); })
-      .text(function(d) { return d.key; })
-      .rotate(function() { return ~~(Math.random() * 2) * 90; })
-      .font("Impact")
-      .on("end", draw)
-      .start();
+    d3.layout.cloud().size([w, h])
+        .timeInterval(20)
+        .words(word_entries)
+        .fontSize(function(d) { return xScale(+d.value); })
+        .text(function(d) { return d.key; })
+        .rotate(function() { return ~~(Math.random() * 2) * 90; })
+        .font("Impact")
+        .on("end", draw)
+        .start();
 
-  function draw(words_entries) {
-    var svg = d3.select(svgId)
-        .append("svg")
-        .attr("width", w)
-        .attr("height", h);
-    
-    var graph = svg.append("g").attr("transform", "translate(" + [w >> 1, h >> 1] + ")")
-        
-    graph.selectAll("text")
-        .data(words_entries)
-        .enter()
-        .append("text")
-        .style("font-size", function(d) { return xScale(d.value) + "px"; })
-        .style("font-family", "Impact")
-        .style("fill", function(d, i) { return fill(i); })
-        .attr("text-anchor", "middle")
-        .attr("transform", function(d) {
-          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-        })
-        .text(function(d) { return d.key; });
+    function draw(words_entries) {
+      var svg = d3.select(svgId)
+          .append("svg")
+          .attr("width", w)
+          .attr("height", h);
+      
+      var graph = svg.append("g").attr("transform", "translate(" + [w >> 1, h >> 1] + ")")
+          
+      graph.selectAll("text")
+          .data(words_entries)
+          .enter()
+          .append("text")
+          .style("font-size", function(d) { return xScale(d.value) + "px"; })
+          .style("font-family", "Impact")
+          .style("fill", function(d, i) { return fill(i); })
+          .attr("text-anchor", "middle")
+          .attr("transform", function(d) {
+            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+          })
+          .text(function(d) { return d.key; });
+    }
   }
-}
 
-var most_used_words = {{ most_used_words|safe }};
-wordCloud("#most_used_words", most_used_words);
+  var most_used_words = {{ most_used_words|safe }};
+  wordCloud("#most_used_words", most_used_words);
 </script>
 </html>
