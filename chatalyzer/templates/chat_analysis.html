@@ -6,7 +6,7 @@
         <link rel="stylesheet" href={{ url_for('static', filename='css/bootstrap.min.css') }} >
         <link rel="stylesheet" href={{ url_for('static', filename='css/main.css') }} >
     </head>
-    <body>
+<body>
         {% include 'navbar.html' %}
         <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
           <div class="col-md-5 p-lg-5 mx-auto my-5">
@@ -15,6 +15,8 @@
             <!--<a class="btn btn-outline-secondary" href="#">Coming soon</a>-->
           </div>
         </div>
+
+
 
 <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
   <div class="bg-dark mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
@@ -42,12 +44,17 @@
     </div>
     <div id="letter_count" class="bg-light " style="width: 80%; height: 300px;"></div>
   </div>
-  <div class="bg-dark mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
+  <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center  overflow-hidden">
     <div class="my-3 py-3">
       <h2 class="display-5">Daywise Messages</h2>
       <p class="lead">Try zooming and panning</p>
     </div>
-    <div id="daywise_messages" class="bg-dark " style="width: 80%; height: 300px;"></div>
+    <div id="daywise_messages" class="bg-light graph-div" style="width: 80%; height: 300px;">
+      <div id="tooltip" class="hidden">
+        <p><strong>First message of the day</strong></p>
+        <p><span id="value">100</span></p>
+      </div>  
+    </div>
   </div>
 </div>
 
@@ -238,6 +245,35 @@
           .attr("x", function(d) { return xScale(parseDate(d[0])) })
           .attr("y", function(d) { return yScale(d[1])})
           .attr("fill", function (d) { return d3.interpolateReds(colorScale(d[1]))})
+          .on("mouseover", function(d) {
+            //Get this bar's x/y values, then augment for the tooltip
+            var xPosition = parseFloat(d3.select(this).attr("x")) + barWidth / 2;
+            var yPosition = parseFloat(d3.select(this).attr("y")) ;
+
+            //Update the tooltip position and value
+            d3.select("#tooltip")
+              .style("left", xPosition + "px")
+              .style("top", yPosition + "px")
+              .select("#value")
+              .text(d[1]);
+            
+            //d3.select("#tooltip")
+            //  .style("left", d3.event.pageX + "px")
+            //  .style("top", d3.event.pageY + "px")
+            //  .select("#value")
+            //  .text(d);
+
+            //Show the tooltip
+            d3.select("#tooltip").classed("hidden", false);
+
+          })
+          .on("mouseout", function() {
+
+            //Hide the tooltip
+            d3.select("#tooltip").classed("hidden", true);
+
+          })
+
 
   var xAxis = d3.axisBottom()
                   .scale(xScale);

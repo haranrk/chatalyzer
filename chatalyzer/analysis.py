@@ -234,9 +234,14 @@ def get_busy_x(df, x, n_x=10, sort=False, drop_none=True):
     }
 
     df2[KEY_BUSY_X] = x_data_dict[x]
-    df3 = df2.groupby(KEY_BUSY_X, as_index=False).count() 
+    import ipdb; ipdb.set_trace();
+    df3 = df2.groupby(KEY_BUSY_X, as_index=False)
+    df3 = df3.count() 
+
+    
     if sort==True:
         df3 = df3.sort_values(by=[KEY_MESSAGE], ascending=False)
+    
     df3 = df3.reset_index(drop=True)\
         .rename(columns={KEY_MESSAGE: KEY_MESSAGE_COUNT})
 
