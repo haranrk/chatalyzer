@@ -24,7 +24,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # chat parsing functions taken from https://towardsdatascience.com/build-your-own-whatsapp-chat-analyzer-9590acca9014
 def starts_with_date_time(s):
-    pattern = '^\[([0-9]|[0-3][0-9])\/([0-9]|[0-3][0-9])\/(\d{2}|\d{4}), ([0-2]\d:[0-6]\d:\d\d|((\d|[0-1][0-9]):[0-6][0-9] ((a|A|p|P)(m|M))))\] '
+    pattern = '^\[(\d\d\/\d\d\/\d\d), (\d\d:\d\d:\d\d|\d{1,2}:\d\d:\d\d PM|AM|am|pm)\] (.+): (.+)'
     result = re.match(pattern, s)
 
     if result:
@@ -64,7 +64,7 @@ def get_data_point(line):
     #     author = None
 
     #line [29/03/22, 15:11:29] Bruce Banner: It's automatic
-    pattern = '^\[(\d\d\/\d\d\/\d\d), (\d\d:\d\d):\d\d\] (.+): (.+)'
+    pattern = '^\[(\d\d\/\d\d\/\d\d), (\d\d:\d\d:\d\d|\d{1,2}:\d\d:\d\d PM|AM|am|pm)\] (.+): (.+)'
     matches = re.match(pattern,line)
     if matches:
         date,time,author,message = matches.groups()
