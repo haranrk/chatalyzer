@@ -1,3 +1,4 @@
+import imp
 import pandas as pd
 import os
 import json
@@ -23,7 +24,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # chat parsing functions taken from https://towardsdatascience.com/build-your-own-whatsapp-chat-analyzer-9590acca9014
 def starts_with_date_time(s):
-    pattern = '^([0-9]|[0-3][0-9])\/([0-9]|[0-3][0-9])\/(\d{2}|\d{4}), ([0-2]\d:[0-6]\d|((\d|[0-1][0-9]):[0-6][0-9] ((a|A|p|P)(m|M)))) -'
+    pattern = '^\[([0-9]|[0-3][0-9])\/([0-9]|[0-3][0-9])\/(\d{2}|\d{4}), ([0-2]\d:[0-6]\d:\d\d|((\d|[0-1][0-9]):[0-6][0-9] ((a|A|p|P)(m|M))))\] '
     result = re.match(pattern, s)
 
     if result:
@@ -49,20 +50,28 @@ def starts_with_author(s):
 
 
 def get_data_point(line):
-    # line = 18/06/17, 22:47 - Loki: Why do you have 2 numbers, Banner?
-    split_line = line.split(' - ')  # split_line = ['18/06/17, 22:47', 'Loki: Why do you have 2 numbers, Banner?']
-    date_time = split_line[0]  # date_time = '18/06/17, 22:47'
-    date, time = date_time.split(', ')  # date = '18/06/17'; time = '22:47'
-    message = ' '.join(split_line[1:])  # message = 'Loki: Why do you have 2 numbers, Banner?'
+    # # line = 18/06/17, 22:47 - Loki: Why do you have 2 numbers, Banner?
+    # split_line = line.split(' - ')  # split_line = ['18/06/17, 22:47', 'Loki: Why do you have 2 numbers, Banner?']
+    # date_time = split_line[0]  # date_time = '18/06/17, 22:47'
+    # date, time = date_time.split(', ')  # date = '18/06/17'; time = '22:47'
+    # message = ' '.join(split_line[1:])  # message = 'Loki: Why do you have 2 numbers, Banner?'
 
-    if starts_with_author(message):  # True
-        split_message = message.split(': ')  # split_message = ['Loki', 'Why do you have 2 numbers, Banner?']
-        author = split_message[0]  # author = 'Loki'
-        message = ' '.join(split_message[1:])  # message = 'Why do you have 2 numbers, Banner?'
-    else:
-        author = None
+    # if starts_with_author(message):  # True
+    #     split_message = message.split(': ')  # split_message = ['Loki', 'Why do you have 2 numbers, Banner?']
+    #     author = split_message[0]  # author = 'Loki'
+    #     message = ' '.join(split_message[1:])  # message = 'Why do you have 2 numbers, Banner?'
+    # else:
+    #     author = None
 
-    return date, time, author, message
+    #line [29/03/22, 15:11:29] Bruce Banner: It's automatic
+    pattern = '^\[(\d\d\/\d\d\/\d\d), (\d\d:\d\d):\d\d\] (.+): (.+)'
+    matches = re.match(pattern,line)
+    if matches:
+        date,time,author,message = matches.groups()
+        return date, time, author, message
+    else: 
+        return False
+
 
 
 def get_chats(chatfile):
@@ -82,7 +91,9 @@ def get_chats(chatfile):
                 parsed_data.append([date, time, author, ' '.join(
                     message_buffer)])  # save the tokens from the previous message in parsed_data
             message_buffer.clear()  # clear the message buffer so that it can be used for the next message
-            date, time, author, message = get_data_point(line)  # identify and extract tokens from the line
+            data_points = get_data_point(line)  # identify and extract tokens from the line
+            if data_points != False:
+                date, time, author, message = data_points
             message_buffer.append(message)
         else:
             message_buffer.append(
@@ -104,7 +115,6 @@ def allowed_file(filename):
 def show_analysis(analysis_id):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], analysis_id) + '.txt'
     if os.path.isfile(file_path):
-        # import ipdb; ipdb.set_trace()
         df = get_chats(file_path)
         df = analysis.add_date_time(df)
         df = analysis.add_letter_count(df)
